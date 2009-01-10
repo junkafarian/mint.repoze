@@ -9,17 +9,17 @@ class Video(object):
         return u'<Video name=%s>' % self.name
     
     def get_html(self):
-        markup = '<div class="videoplayer" id="%s"></div>\n' % self.name
+        markup = u'<div class="videoplayer" id="%s"></div>\n' % self.name
         link = u'<a href="/tags/%(name)s">%(name)s</a>'
-        links = [link % {'name': tag} for tag in self.tags]
-        markup += '<div id="tags">%s</div>\n' % links
+        links = [link % {u'name': tag} for tag in self.tags]
+        markup += u'<div id="tags">%s</div>\n' % links
         return markup
     
  
 videos = dict(
-        intro = Video('intro', '', ['feature', 'intro',]),
-        oil_on_ice = Video('oil_on_ice', '', ['feature', 'arctic', 'water',]),
-        toxic_sperm = Video('toxic_sperm', '', ['feature', 'greenpeace',]),
+        intro = Video(u'intro', u'', [u'feature', u'intro',]),
+        oil_on_ice = Video(u'oil_on_ice', u'', [u'feature', u'arctic', u'water',]),
+        toxic_sperm = Video(u'toxic_sperm', u'', [u'feature', u'greenpeace',]),
 )
  
  

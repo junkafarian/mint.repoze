@@ -87,11 +87,30 @@ def test_tag_page(res=None):
         'intro' in res.body,
         u'intro should be a featured video'
     )
-
+    
     res = res.click('oil_on_ice')
     test_oil_on_ice_video(res)
 
-
+def test_video_object_creation():
+    from mint.repoze.models import Video
+    ob = Video(name=u'name', description=u'description', tags=[u'tag1', u'tag2', u'tag3'])
+    assert_true(
+        ob.name == u'name',
+        u'Video object stores `name` correctly'
+    )
+    assert_true(
+        ob.description == u'description',
+        u'Video object stores `description` correctly'
+    )
+    assert_true(
+        ob.tags == [u'tag1', u'tag2', u'tag3'],
+        u'Video object stores `tags` correctly'
+    )
+    assert_true(
+        u'<div class="videoplayer" id="name">' in ob.get_html(),
+        u'object returns html including a `videoplayer` div'
+    )
+    
 
 def test_rules_the_world():
     print u'well done you broke the mould'
