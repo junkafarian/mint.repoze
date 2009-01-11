@@ -13,7 +13,20 @@ class Video(object):
     """ A simple Video object
         
         >>> from mint.repoze.models import IVideo, Video
-        >>> ob = Video('test_vid', '', [])
+        >>> ob = Video(name=u'name', description=u'description', tags=[u'tag1', u'tag2', u'tag3'])
+        >>> ob.name == u'name'
+        True
+        >>> ob.description == u'description'
+        True
+        >>> u'tag1' in ob.tags
+        True
+        >>> ob.tags
+        [u'tag1', u'tag2', u'tag3']
+        >>> ob.tags.append(u'tag4')
+        >>> u'tag4' in ob.tags
+        True
+        >>> u'<div class="videoplayer" id="name">' in ob.get_html()
+        True
         >>> IVideo.providedBy(ob)
         True
         
@@ -49,6 +62,14 @@ class IVideoContainer(Interface):
     
 
 class VideoContainer(dict):
+    """ A simple container for Video objects
+        
+        >>> from mint.repoze.models import IVideoContainer, VideoContainer
+        >>> ob = VideoContainer()
+        >>> IVideoContainer.providedBy(ob)
+        True
+        
+    """
     
     implements(IVideoContainer, ILocation)
     
