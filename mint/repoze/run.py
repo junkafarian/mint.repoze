@@ -13,7 +13,8 @@ class MintApp:
         return root
     
     def connect_routes(self, root):
-        root.connect('/', controller='index')
+        root.connect('/', controller='index.html')
+        root.connect('/index.html', controller='index.html')
         root.connect('/:video_name', controller='video')
         root.connect('/tags/:tag', controller='tag')
         return root
@@ -39,9 +40,11 @@ class MintApp:
 #     return make_app(get_root, mint.repoze)(environ, start_response)
 # 
 def app(global_config, **kw):
-    """ This function returns a repoze.bfg.router.Router object.  It
-    is usually called by the PasteDeploy framework during ``paster
-    serve``"""
-    # paster app config callback
+    """ This function provides an interface to the MintApp WSGI application
+        >>> from mint.repoze.run import MintApp, app
+        >>> testapp = app(global_config = {})
+        >>> type(testapp) == type(MintApp())
+        True
+    """
     return MintApp(**kw)
 

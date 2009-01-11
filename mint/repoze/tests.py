@@ -22,6 +22,14 @@ def test_index_page():
         '`home` should be within the page returned by `/`'
     )
 
+def test_root_equals_index():
+    res1 = app.get('/')
+    res2 = app.get('/index.html')
+    assert_true(
+        res1.body == res2.body,
+        '`/` should be the same as `index.html`'
+    )
+
 def test_video_page():
     """video page contains video name"""
     res = app.get('/intro')

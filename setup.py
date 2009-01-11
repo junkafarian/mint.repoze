@@ -10,6 +10,8 @@ README = open(os.path.join(here, 'README.txt')).read()
 CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 
 requires = [
+        'zope.interface',
+        'zope.schema',
         'repoze.bfg',
         'repoze.bfg.convention',
         'repoze.bfg.jinja2',
