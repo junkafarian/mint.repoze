@@ -15,5 +15,11 @@ When these are installed you should be able to install the rest of this packages
     OR
     $ python setup.py develop
 
+then test the application to make sure it works:
+
+    $ nosetests
+    OR
+    $ python setup.py test
+
 enjoy!
 
