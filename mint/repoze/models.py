@@ -1,6 +1,7 @@
 from zope.interface import Interface, implements
 from zope.schema import TextLine, Text, List
 from repoze.bfg.interfaces import ILocation
+from repoze.bfg.view import static
 
 class IVideo(Interface):
     
@@ -64,10 +65,17 @@ class IVideoContainer(Interface):
 class VideoContainer(dict):
     """ A simple container for Video objects
         
-        >>> from mint.repoze.models import IVideoContainer, VideoContainer
+        >>> from mint.repoze.models import IVideoContainer, VideoContainer, Video
         >>> ob = VideoContainer()
         >>> IVideoContainer.providedBy(ob)
         True
+        >>> len(ob)
+        0
+        >>> ob[u'vid1'] = Video('vid1', 'description', [])
+        >>> len(ob)
+        1
+        >>> ob.keys()
+        [u'vid1']
         
     """
     
@@ -111,6 +119,8 @@ class Root(object):
     implements(ILocation)
     __parent__ = None
     __name__ = u'root'
+    
+    videos = video_container
     
     def __getitem__(self, key):
         """ Returns items for traversal

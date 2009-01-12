@@ -99,6 +99,19 @@ def test_tag_page(res=None):
     res = res.click('oil_on_ice')
     test_oil_on_ice_video(res)
 
+def test_reachable_zopish_static():
+    res = app.get('/@@static/css/screen.css')
+    assert_true(
+        '200' in res.status,
+        u'Static files are accessible'
+    )
+
+def test_reachable_static():
+    res = app.get('/static/css/screen.css')
+    assert_true(
+        '200' in res.status,
+        u'Static files are accessible'
+    )
 
 def test_rules_the_world():
     print u'well done you broke the mould'

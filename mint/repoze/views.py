@@ -2,8 +2,9 @@ from webob.exc import HTTPNotFound
 
 from repoze.bfg.jinja2 import render_template_to_response
 from repoze.bfg.convention import bfg_view
+from repoze.bfg.view import static
 
-from mint.repoze.models import video_container, IVideoContainer, VideoContainer#videos, get_videos_with_tag_html
+from mint.repoze.models import video_container, Root#videos, get_videos_with_tag_html
 
 @bfg_view(name='index.html')
 def index(context, request):
@@ -30,4 +31,8 @@ def tag(context, request):
 #     context.video = video_container[context.video_name]
 #     return render_template_to_response('templates/video.html', context=context)
 #     
+
+@bfg_view(name='static', for_=Root)
+def static_view(context, request):
+   return static('mint/repoze/static/')(context, request)
 
