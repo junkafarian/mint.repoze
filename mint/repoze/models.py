@@ -89,23 +89,23 @@ class VideoContainer(dict):
     def __repr__(self):
         return u'<VideoContainer object>'
     
-    def get_videos_with_tag(self, tag):
+    def get_videos_by_tag(self, tag):
         """ Returns a list of video objects with the given tag
             >>> from mint.repoze.models import VideoContainer, sample_videos
             >>> vids = VideoContainer(**sample_videos)
-            >>> vids.get_videos_with_tag('feature') # doctest: +ELLIPSIS
+            >>> vids.get_videos_by_tag('feature') # doctest: +ELLIPSIS
             [<Video name=...]
         """
         return [video for video in self.values() if tag in video.tags]
     
-    def get_videos_with_tag_html(self, tag):
+    def get_videos_by_tag_as_html(self, tag):
         """ Returns a list of video objects with the given tag
             >>> from mint.repoze.models import VideoContainer, sample_videos
             >>> vids = VideoContainer(**sample_videos)
-            >>> vids.get_videos_with_tag_html('feature') # doctest: +ELLIPSIS
+            >>> vids.get_videos_by_tag_as_html('feature') # doctest: +ELLIPSIS
             u'<a href=...'
         """
-        videos = self.get_videos_with_tag(tag)
+        videos = self.get_videos_by_tag(tag)
         link = u'<a href="/%(name)s">%(name)s</a>'
         links = [link % {'name': video.name} for video in videos]
         return u'\n'.join(links)
@@ -131,6 +131,9 @@ class Root(object):
         """
         if key == u'videos':
             return video_container
+        if key == u'static':
+            # let the request pass onto the view
+            raise KeyError()
     
 
 root = Root()

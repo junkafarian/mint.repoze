@@ -22,7 +22,7 @@ def video(context, request):
 
 @bfg_view(name='tag')
 def tag(context, request):
-    context.videos = video_container.get_videos_with_tag_html(context.tag)
+    context.videos = video_container.get_videos_by_tag_as_html(context.tag)
     return render_template_to_response('templates/tag.html', context=context)
 
 # @bfg_view(for_=VideoContainer)
