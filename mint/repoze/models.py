@@ -1,19 +1,12 @@
-from zope.interface import Interface, implements
-from zope.schema import TextLine, Text, List
-from repoze.bfg.interfaces import ILocation
+from zope.interface import implements
 from repoze.bfg.view import static
-
-class IVideo(Interface):
-    
-    name = TextLine(title=u'Video Name')
-    description = Text(title=u'Video Description')
-    tags = List(title=u'Video Tags', value_type=TextLine())
-    
+from mint.repoze.interfaces import IVideo, IVideoContainer
 
 class Video(object):
     """ A simple Video object
         
-        >>> from mint.repoze.models import IVideo, Video
+        >>> from mint.repoze.interfaces import IVideo
+        >>> from mint.repoze.models import Video
         >>> ob = Video(name=u'name', description=u'description', tags=[u'tag1', u'tag2', u'tag3'])
         >>> ob.name == u'name'
         True
@@ -50,22 +43,12 @@ class Video(object):
         markup += u'<div id="tags">%s</div>\n' % links
         return markup
     
- 
-sample_videos = dict(
-        intro = Video(u'intro', u'', [u'feature', u'intro',]),
-        oil_on_ice = Video(u'oil_on_ice', u'', [u'feature', u'arctic', u'water',]),
-        toxic_sperm = Video(u'toxic_sperm', u'', [u'feature', u'greenpeace',]),
-)
-
-class IVideoContainer(Interface):
-    
-    pass
-    
 
 class VideoContainer(dict):
     """ A simple container for Video objects
         
-        >>> from mint.repoze.models import IVideoContainer, VideoContainer, Video
+        >>> from mint.repoze.interfaces import IVideoContainer
+        >>> from mint.repoze.models import VideoContainer, Video
         >>> ob = VideoContainer()
         >>> IVideoContainer.providedBy(ob)
         True
@@ -79,7 +62,7 @@ class VideoContainer(dict):
         
     """
     
-    implements(IVideoContainer, ILocation)
+    implements(IVideoContainer)
     
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
@@ -91,7 +74,8 @@ class VideoContainer(dict):
     
     def get_videos_by_tag(self, tag):
         """ Returns a list of video objects with the given tag
-            >>> from mint.repoze.models import VideoContainer, sample_videos
+            >>> from mint.repoze.models import VideoContainer
+            >>> from mint.repoze.root import sample_videos
             >>> vids = VideoContainer(**sample_videos)
             >>> vids.get_videos_by_tag('feature') # doctest: +ELLIPSIS
             [<Video name=...]
@@ -100,7 +84,8 @@ class VideoContainer(dict):
     
     def get_videos_by_tag_as_html(self, tag):
         """ Returns a list of video objects with the given tag
-            >>> from mint.repoze.models import VideoContainer, sample_videos
+            >>> from mint.repoze.models import VideoContainer
+            >>> from mint.repoze.root import sample_videos
             >>> vids = VideoContainer(**sample_videos)
             >>> vids.get_videos_by_tag_as_html('feature') # doctest: +ELLIPSIS
             u'<a href=...'
@@ -112,37 +97,3 @@ class VideoContainer(dict):
     
 
 
-video_container = VideoContainer(**sample_videos)
-
-class Root(object):
-    
-    implements(ILocation)
-    __parent__ = None
-    __name__ = u'root'
-    
-    videos = video_container
-    
-    def __getitem__(self, key):
-        """ Returns items for traversal
-            >>> from mint.repoze.models import Root
-            >>> root = Root()
-            >>> root[u'videos']
-            <VideoContainer object>
-        """
-        if key == u'videos':
-            return video_container
-        if key == u'static':
-            # let the request pass onto the view
-            raise KeyError()
-    
-
-root = Root()
-
-def get_root(environ):
-    """ This function provides an interface to the Root object
-        >>> from mint.repoze.models import Root, get_root
-        >>> testroot = get_root(environ = {})
-        >>> type(testroot) == type(Root())
-        True
-    """
-    return root
