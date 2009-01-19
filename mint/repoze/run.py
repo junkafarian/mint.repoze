@@ -12,7 +12,7 @@ import logging
 logging.basicConfig()
 log = logging.getLogger('mint.root')
 
-default_zodb_uri = u'./temp.data.fs'
+default_zodb_uri = u'./tempdata/Data.fs'
 default_zodb_uri = 'file://' + abspath(default_zodb_uri)
 
 def is_valid_video(environ, result):
@@ -68,9 +68,9 @@ class MintApp:
 
 def app(global_config, **kw):
     """ This function provides an interface to the MintApp WSGI application
-        >>> from mint.repoze.run import MintApp, app
-        >>> testapp = app(global_config = {})
-        >>> type(testapp) == type(MintApp())
+        >>> from mint.repoze.run import MintApp, app, default_zodb_uri
+        >>> testapp = app(global_config={}, zodb_uri=default_zodb_uri)
+        >>> type(testapp) == type(MintApp(zodb_uri=default_zodb_uri))
         True
     """
     return MintApp(**kw)
