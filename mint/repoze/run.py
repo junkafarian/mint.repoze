@@ -65,12 +65,15 @@ class MintApp:
     def __call__(self, environ, start_response):
         return self.app(environ, start_response)
     
+    def __repr__(self):
+        return u'<MintApp object>'
+    
 
 def app(global_config, **kw):
     """ This function provides an interface to the MintApp WSGI application
         >>> from mint.repoze.run import MintApp, app, default_zodb_uri
         >>> testapp = app(global_config={}, zodb_uri=default_zodb_uri)
-        >>> type(testapp) == type(MintApp(zodb_uri=default_zodb_uri))
+        >>> repr(testapp) == repr(MintApp(zodb_uri=default_zodb_uri))
         True
     """
     return MintApp(**kw)
