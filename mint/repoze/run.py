@@ -1,8 +1,8 @@
 from repoze.bfg.router import make_app
-from repoze.bfg.registry import get_options
-from repoze.bfg.urldispatch import RoutesMapper
+from repoze.bfg.settings import get_options
 from repoze.zodbconn.finder import PersistentApplicationFinder
 
+from mint.repoze.urldispatch import RoutesMapper
 from mint.repoze.models import Video
 
 from os import makedirs
@@ -51,11 +51,8 @@ class MintApp:
         return root
     
     def connect_routes(self, root):
-        #root.connect('/', controller='index.html', context_factory=Video)
-        #root.connect('/index.html', controller='index.html')
         root.connect('/tags/:tag', controller='tag')
         root.connect('/:video_name', controller='video_redirect', conditions=dict(function=is_valid_video))
-        # root.connect('/videos/:video_name', controller='video')
         return root
     
     @property

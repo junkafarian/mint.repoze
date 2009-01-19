@@ -3,6 +3,11 @@
   <!-- this must be included for the view declarations to work -->
   <include package="repoze.bfg.includes" />
   
+  <subscriber
+    for="repoze.bfg.interfaces.IWSGIApplicationCreatedEvent"
+    handler=".subscribers.registerUtilities"
+  />
+  
   <!-- to save us having to write nasty xml configuration -->
   <include package="repoze.bfg.convention" file="meta.zcml"/>
   <convention package="." />

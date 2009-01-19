@@ -1,6 +1,7 @@
 from zope.interface import implements
 from persistent.mapping import PersistentMapping
 from repoze.bfg.interfaces import ILocation
+
 from mint.repoze.models import Video, VideoContainer
 
 sample_videos = dict(
@@ -12,11 +13,10 @@ sample_videos = dict(
 sample_video_container = VideoContainer(**sample_videos)
 
 class Root(PersistentMapping):
-    
     implements(ILocation)
+    
     __parent__ = None
     __name__ = u'root'
-    
     data = {}
     
     def __getitem__(self, key):
@@ -30,19 +30,8 @@ def get_zodb_root(zodb_root):
     if not 'mint_root' in zodb_root:
         mint_root = Root()
         mint_root['videos'] = sample_video_container
-        # initialise app
         zodb_root['mint_root'] = mint_root
         import transaction
         transaction.commit()
     return zodb_root['mint_root']
 
-root = Root()
-
-def get_root(environ):
-    """ This function provides an interface to the Root object
-        >>> from mint.repoze.root import Root, get_root
-        >>> testroot = get_root(environ = {})
-        >>> type(testroot) == type(Root())
-        True
-    """
-    return root

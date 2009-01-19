@@ -12,8 +12,8 @@ CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 requires = [
         'zope.interface',
         'zope.schema',
+        'routes',
         'repoze.bfg',
-        'repoze.bfg.convention',
         'repoze.bfg.jinja2',
         'repoze.zodbconn',
         'repoze.tm',
