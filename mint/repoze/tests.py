@@ -2,7 +2,13 @@ from nose.tools import assert_true, assert_equals, assert_raises
 from webtest import TestApp, AppError
 from mint.repoze.run import MintApp
 
-app = TestApp(MintApp())
+from os.path import abspath, dirname, join
+
+# tests_zodb_uri = u'./tests.data.fs'
+# tests_zodb_uri = 'file://' + abspath(tests_zodb_uri)
+
+#app = TestApp(MintApp(zodb_uri=tests_zodb_uri))
+app = TestApp('config:' + join(dirname(__file__), 'testing.ini'))
 
 def test_valid_root():
     """root returns a `200` status code"""
@@ -32,7 +38,7 @@ def test_root_equals_index():
 
 def test_video_page():
     """video page contains video name"""
-    res = app.get('/intro')
+    res = app.get('/videos/intro')
     assert_true(
         'intro' in res.body,
         u'video name should be within the video page'
@@ -45,7 +51,7 @@ def test_intro_video_on_root():
 
 def test_intro_video_page():
     """`/intro` has a `intro` video"""
-    res = app.get('/intro')
+    res = app.get('/videos/intro')
     assert 'div class="videoplayer" id="intro"' in res.body
     res = res.click('feature')
     test_tag_page(res)
@@ -55,14 +61,14 @@ def test_flibble_page_returns_404():
     assert_raises(
         AppError,
         app.get,
-        '/flibble'
+        '/videos/flibble'
     )
     print u'who the hell called their video `flibble`'
 
 def test_oil_on_ice_video(res=None):
     """`/oil_on_ice` video exists and has tags"""
     if not res:
-        res = app.get('/oil_on_ice')
+        res = app.get('/videos/oil_on_ice')
     assert_true(
      'div class="videoplayer" id="oil_on_ice"' in res.body,
      "Oil on Ice video should be there"
@@ -98,13 +104,6 @@ def test_tag_page(res=None):
     
     res = res.click('oil_on_ice')
     test_oil_on_ice_video(res)
-
-def test_reachable_zopish_static():
-    res = app.get('/@@static/css/screen.css')
-    assert_true(
-        '200' in res.status,
-        u'Static files are accessible'
-    )
 
 def test_reachable_static():
     res = app.get('/static/css/screen.css')

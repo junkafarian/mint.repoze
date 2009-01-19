@@ -91,7 +91,7 @@ class VideoContainer(dict):
             u'<a href=...'
         """
         videos = self.get_videos_by_tag(tag)
-        link = u'<a href="/%(name)s">%(name)s</a>'
+        link = u'<a href="/videos/%(name)s">%(name)s</a>'
         links = [link % {'name': video.name} for video in videos]
         return u'\n'.join(links)
     
