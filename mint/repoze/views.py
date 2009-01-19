@@ -1,5 +1,5 @@
 from webob import Response
-from webob.exc import HTTPNotFound, HTTPTemporaryRedirect
+from webob.exc import HTTPNotFound, HTTPMovedPermanently
 
 from repoze.bfg.jinja2 import render_template_to_response
 from repoze.bfg.convention import bfg_view
@@ -26,8 +26,7 @@ def video(context, request):
 
 @bfg_view(name='video_redirect')
 def video_redirect(context, request):
-    return HTTPTemporaryRedirect(location = '/videos/'+context.video_name)
-    #request.response.redirect('/videos/'+context.video_name)
+    return HTTPMovedPermanently(location = '/videos/' + context.video_name)
 
 @bfg_view(for_=Video)
 def video(context, request):

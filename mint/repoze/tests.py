@@ -81,6 +81,14 @@ def test_oil_on_ice_video(res=None):
             "%s tag should be in body" % tag
         )
 
+def test_legacy_video_redirect():
+    """/[video_name] redirects to /videos/[video_name]"""
+    res = app.get('/intro')
+    assert_true(
+        '301' in res.status,
+        u'response should be a 301 response, not %s' % res.status
+    )
+
 def test_tag_page(res=None):
     """check contents of a tag page | check links on page return real video pages"""
     if res == None:

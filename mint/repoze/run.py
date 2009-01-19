@@ -16,8 +16,9 @@ default_zodb_uri = u'./tempdata/Data.fs'
 default_zodb_uri = 'file://' + abspath(default_zodb_uri)
 
 def is_valid_video(environ, result):
-    #TODO: regex
-    if '.' in result['video_name']:
+    name = result['video_name']
+    if  '.' in name or \
+        name.startswith('_'):
         return False
     return True
     
