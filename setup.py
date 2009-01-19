@@ -16,7 +16,7 @@ requires = [
         'repoze.bfg.convention',
         'repoze.bfg.jinja2',
         'repoze.zodbconn',
-        'repoze.tm2',
+        'repoze.tm',
         'webtest',
         'nose',
         ]
