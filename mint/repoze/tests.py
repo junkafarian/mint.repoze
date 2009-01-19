@@ -16,7 +16,7 @@ def test_valid_root():
     assert "200" in res.status
 
 def test_root_not_404():
-    """Root does not return Not Found"""
+    """root does not return Not Found"""
     res = app.get('/')
     assert "404" not in res.status
 
@@ -29,6 +29,7 @@ def test_index_page():
     )
 
 def test_root_equals_index():
+    """`/` equals `/index.html`"""
     res1 = app.get('/')
     res2 = app.get('/index.html')
     assert_true(
@@ -45,7 +46,7 @@ def test_video_page():
     )
 
 def test_intro_video_on_root():
-    """Root has a `intro` video"""
+    """root has a `intro` video"""
     res = app.get('/')
     assert 'div class="videoplayer" id="intro"' in res.body
 
@@ -106,13 +107,25 @@ def test_tag_page(res=None):
     test_oil_on_ice_video(res)
 
 def test_reachable_static():
+    """Static files are accessible at `/static/`"""
     res = app.get('/static/css/screen.css')
     assert_true(
         '200' in res.status,
-        u'Static files are accessible'
+        u'`200` in response'
     )
 
+def test_reachable_zopish_static():
+    """Static files are accessible via zope syntax (/@@static/)"""
+    res = app.get('/@@static/css/screen.css')
+    assert_true(
+        '200' in res.status,
+        u'`200` in response'
+    )
+
+
+
 def test_rules_the_world():
+    """This app rules the world"""
     print u'well done you broke the mould'
     assert True
 
