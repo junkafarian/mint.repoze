@@ -115,7 +115,7 @@ def test_reachable_static():
     res = app.get('/static/css/screen.css')
     assert_true(
         '200' in res.status,
-        u'`200` in response'
+        u'`200` not in response'
     )
 
 def test_reachable_zopish_static():
@@ -123,10 +123,43 @@ def test_reachable_zopish_static():
     res = app.get('/@@static/css/screen.css')
     assert_true(
         '200' in res.status,
-        u'`200` in response'
+        u'`200` not in response'
     )
 
-
+def test_add_video():
+    """Publish a new video through the web interface"""
+    res = app.get('/videos/add_video.html')
+    assert_true(
+        '200' in res.status,
+        u'add video url not available'
+    )
+    
+    res = app.post(
+        '/videos/add_video.html', 
+        {
+            'video.name': 'testvid1',
+            'video.description': 'A test video for our tests',
+            'video.tags': 'foo,bar,baz'
+        }
+    )
+    print res
+    assert_true(
+        'successful' in res.body,
+        u'post not successful'
+    )
+    
+    res = app.get('/videos/testvid1')
+    assert_true(
+        '200' in res.status,
+        u'new video not live'
+    )
+    
+    res = app.get('/tags/foo')
+    assert_true(
+        'testvid1' in res.body,
+        u'video not searchable by tags'
+    )
+    
 
 def test_rules_the_world():
     """This app rules the world"""

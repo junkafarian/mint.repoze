@@ -58,7 +58,10 @@ class MintApp:
     @property
     def app(self):
         import mint.repoze
-        return make_app(self.get_root, mint.repoze, options=self.options)
+        from mint.repoze.auth import middleware as auth_middleware
+        app = make_app(self.get_root, mint.repoze, options=self.options)
+        app = auth_middleware(app)
+        return app
     
     def __call__(self, environ, start_response):
         return self.app(environ, start_response)

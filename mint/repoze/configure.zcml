@@ -8,6 +8,11 @@
     handler=".subscribers.registerUtilities"
   />
   
+  <utility
+    provides="repoze.bfg.interfaces.ISecurityPolicy"
+    factory="repoze.bfg.security.RepozeWhoIdentityACLSecurityPolicy"
+  />
+    
   <!-- to save us having to write nasty xml configuration -->
   <include package="repoze.bfg.convention" file="meta.zcml"/>
   <convention package="." />

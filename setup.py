@@ -17,6 +17,8 @@ requires = [
         'repoze.bfg.jinja2',
         'repoze.zodbconn',
         'repoze.tm',
+        'repoze.what',
+        'repoze.what.plugins.ini',
         'webtest',
         'nose',
         ]

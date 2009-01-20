@@ -1,6 +1,9 @@
 from zope.interface import implements
-from repoze.bfg.view import static
+from repoze.bfg.security import Everyone, Allow, Deny
+
 from mint.repoze.interfaces import IVideo, IVideoContainer
+from persistent.mapping import PersistentMapping
+
 
 class Video(object):
     """ A simple Video object
@@ -44,7 +47,7 @@ class Video(object):
         return markup
     
 
-class VideoContainer(dict):
+class VideoContainer(PersistentMapping):
     """ A simple container for Video objects
         
         >>> from mint.repoze.interfaces import IVideoContainer
@@ -61,13 +64,16 @@ class VideoContainer(dict):
         [u'vid1']
         
     """
+    __acl__ = [
+            (Allow, Everyone, 'view'),
+            (Allow, 'admin', 'add'),
+            (Allow, 'admin', 'edit'),
+            ]
     
     implements(IVideoContainer)
     
     def __init__(self, **kwargs):
-        for k, v in kwargs.items():
-            self.__setitem__(k, v)
-        
+        self.data = dict(**kwargs)
     
     def __repr__(self):
         return u'<VideoContainer object>'
