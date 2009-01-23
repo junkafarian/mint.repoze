@@ -5,4 +5,5 @@
   This is the homepage<br />
   And it has a video:
   {{ context.videos['intro'].get_html() }}
+  {% if 'main_ad_widget' in widgets %}{{ widgets['main_ad_widget'] }}{% endif %}
 {% endblock %}

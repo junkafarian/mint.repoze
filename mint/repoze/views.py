@@ -71,15 +71,20 @@ def test_widget(context, request):
 def auth_widget(context, request):
     return ResponseTemplate('widgets/auth.html', context=context, request=request)
 
+@bfg_view(name='main_ad_widget')
+def main_ad_widget(context, request):
+    return ResponseTemplate('widgets/main_ad.html', context=context, request=request)
 
+
+## Views
 
 @bfg_view(name='', for_=Root, permission='view')
-@with_widgets('auth_widget')
+@with_widgets('auth_widget', 'main_ad_widget')
 def index(context, request):
     return ResponseTemplate('index.html', context=context, request=request)
 
 @bfg_view(name='index.html', for_=Root, permission='view')
-@with_widgets('auth_widget')
+@with_widgets('auth_widget', 'main_ad_widget')
 def index_page(context, request):
     return ResponseTemplate('index.html', context=context, request=request)
 

@@ -53,6 +53,14 @@ def test_root_equals_index():
         '`/` should be the same as `index.html`'
     )
 
+def test_ads_on_index():
+    """Ad section on homepage"""
+    res = app.get('/')
+    assert_true(
+        'ad-section' in res.body,
+        'ad-section should be in the `index.html` page'
+    )
+
 def test_video_page():
     """video page contains video name"""
     res = app.get('/videos/intro')
