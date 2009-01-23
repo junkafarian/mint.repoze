@@ -1,8 +1,7 @@
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head><title>mint | tags | {{ context.tag }}</title></head>
-<body>
+{% extends "layout/master.html" %}
+{% block title %}tags | {{ context.tag }}{% endblock %}
+{% block body %}
   <h1>Welcome to mint, the new green.tv</h1>
   This is a video page
   {{ videos }}
-</body>
-</html>
+{% endblock %}

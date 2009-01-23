@@ -1,9 +1,13 @@
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head></head>
-<body>
+{% extends "layout/master.html" %}
+{% block title %}Home{% endblock %}
+{% block body %}
   <h1>Welcome to mint, the new green.tv</h1>
+  {% if request.environ.get('REMOTE_USER', False) %}
+    <div>You are logged in as {{ request.environ['REMOTE_USER'] }}, <a href="/logout.html">logout?</a></div>
+  {% else %}
+    <div>You are not logged in, please <a href="/login.html">login here</a></div>
+  {% endif %}
   This is the homepage<br />
   And it has a video:
   {{ context.videos['intro'].get_html() }}
-</body>
-</html>
+{% endblock %}

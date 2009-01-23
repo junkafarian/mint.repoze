@@ -1,10 +1,30 @@
-from nose.tools import assert_true, assert_equals, assert_raises
+from nose.tools import assert_true, assert_equals, assert_raises, with_setup
 from webtest import TestApp, AppError
 from mint.repoze.run import MintApp
+from mint.repoze.testdata import users
 
 from os.path import abspath, dirname, join
 
 app = TestApp('config:' + join(dirname(__file__), 'testing.ini'))
+
+def login(user=users[u'admin'], url=u'/login.html', app=app):
+    u"This is not a test!  It is a utility for other tests"
+    res = app.get(url)
+    form = res.forms[u'login']
+    form[u'login'] = user[u'user']
+    form[u'password'] = user[u'password']
+    res = form.submit()
+    res = res.follow()
+    res = res.follow()
+    assert_true(
+        user[u'user'] in res.body,
+        u'Should be logged in.'
+    )
+    assert_true(
+        u'logout' in res.body,
+        u'Should be a link to logout.'
+    )
+
 
 def test_valid_root():
     """root returns a `200` status code"""
@@ -47,7 +67,7 @@ def test_intro_video_on_root():
     assert 'div class="videoplayer" id="intro"' in res.body
 
 def test_intro_video_page():
-    """`/intro` has a `intro` video"""
+    """`/video/intro` has a `intro` video"""
     res = app.get('/videos/intro')
     assert 'div class="videoplayer" id="intro"' in res.body
     res = res.click('feature')
@@ -126,6 +146,7 @@ def test_reachable_zopish_static():
         u'`200` not in response'
     )
 
+@with_setup(login)
 def test_add_video():
     """Publish a new video through the web interface"""
     res = app.get('/videos/add_video.html')

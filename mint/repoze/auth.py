@@ -1,3 +1,35 @@
+login_form = """
+<html>
+<head>
+  <title>Log In</title>
+</head>
+<body>
+  <div>
+     <b>Log In</b>
+  </div>
+  <br/>
+  <form method="POST" id="login" action="?__do_login=true">
+    <table border="0">
+    <tr>
+      <td>User Name</td>
+      <td><input type="text" name="login"></input></td>
+    </tr>
+    <tr>
+      <td>Password</td>
+      <td><input type="password" name="password"></input></td>
+    </tr>
+    <tr>
+      <td></td>
+      <td><input type="submit" name="submit" value="Log In"/></td>
+    </tr>
+    </table>
+  </form>
+  <pre>
+  </pre>
+</body>
+</html>
+"""
+
 def middleware(app):
     from repoze.who.middleware import PluggableAuthenticationMiddleware
     from repoze.who.interfaces import IIdentifier, IChallenger
@@ -14,12 +46,12 @@ def middleware(app):
     basicauth = BasicAuthPlugin('Mint')
     auth_tkt = AuthTktCookiePlugin('secret', 'auth_tkt')
     # move to RedirectingFormPlugin
-    form = FormPlugin('__do_login', rememberer_name='auth_tkt')
+    form = FormPlugin('__do_login', rememberer_name='auth_tkt', formbody=login_form)
     form.classifications = { IIdentifier:['browser'],
                              IChallenger:['browser'] } # only for browser
     identifiers = [('form', form),('auth_tkt',auth_tkt),('basicauth',basicauth)]
     authenticators = [('htpasswd', htpasswd)]
-    challengers = [('basicauth',basicauth)]
+    challengers = [('form', form),('basicauth',basicauth)]
     mdproviders = []
     
     from repoze.who.classifiers import default_request_classifier, default_challenge_decider

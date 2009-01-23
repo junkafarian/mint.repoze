@@ -1,6 +1,6 @@
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head><title>mint | videos | Add Video</title></head>
-<body>
+{% extends "layout/master.html" %}
+{% block title %}videos | Add Video{% endblock %}
+{% block body %}
   <h1>Welcome to mint, the new green.tv</h1>
   Here you can add a video
   {{ message }}
@@ -10,5 +10,4 @@
     <div><label for="video.tags">tags</label><input name="video.tags" type="text" /></div>
     <input type="submit" />
   </form>
-</body>
-</html>
+{% endblock %}

@@ -1,19 +1,17 @@
 from zope.interface import implements
 from persistent.mapping import PersistentMapping
 from repoze.bfg.interfaces import ILocation
-
-from mint.repoze.models import Video, VideoContainer
-
-sample_videos = dict(
-        intro = Video(u'intro', u'', [u'feature', u'intro',]),
-        oil_on_ice = Video(u'oil_on_ice', u'', [u'feature', u'arctic', u'water',]),
-        toxic_sperm = Video(u'toxic_sperm', u'', [u'feature', u'greenpeace',]),
-)
-
-sample_video_container = VideoContainer(**sample_videos)
+from repoze.bfg.security import Everyone, Allow, Deny, Authenticated
 
 class Root(PersistentMapping):
     implements(ILocation)
+    
+    __acl__ = [
+            (Allow, Everyone, 'view'),
+            (Allow, 'admin', 'add'),
+            (Allow, 'admin', 'edit'),
+            (Allow, Authenticated, 'authenticated'),
+            ]
     
     __parent__ = None
     __name__ = u'root'
@@ -28,6 +26,7 @@ class Root(PersistentMapping):
 
 def get_zodb_root(zodb_root):
     if not 'mint_root' in zodb_root:
+        from mint.repoze.testdata import sample_video_container
         mint_root = Root()
         mint_root['videos'] = sample_video_container
         zodb_root['mint_root'] = mint_root
