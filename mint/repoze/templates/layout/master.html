@@ -1,6 +1,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head><title>mint | {% block title %}Home{% endblock %}</title></head>
 <body>
+  {% if 'auth_widget' in widgets %}{{ widgets['auth_widget'] }}{% endif %}
   {% block body %}{% endblock %}
 </body>
 </html>
