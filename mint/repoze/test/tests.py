@@ -1,7 +1,7 @@
 from nose.tools import assert_true, assert_equals, assert_raises, with_setup
 from webtest import TestApp, AppError
 from mint.repoze.run import MintApp
-from mint.repoze.testdata import users
+from mint.repoze.test.data import users
 
 from os.path import abspath, dirname, join
 

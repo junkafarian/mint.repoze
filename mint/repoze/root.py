@@ -26,7 +26,7 @@ class Root(PersistentMapping):
 
 def get_zodb_root(zodb_root):
     if not 'mint_root' in zodb_root:
-        from mint.repoze.testdata import sample_video_container
+        from mint.repoze.test.data import sample_video_container
         mint_root = Root()
         mint_root['videos'] = sample_video_container
         zodb_root['mint_root'] = mint_root

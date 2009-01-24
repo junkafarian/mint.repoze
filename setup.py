@@ -14,11 +14,9 @@ requires = [
         'zope.schema',
         'routes',
         'repoze.bfg',
-        'repoze.bfg.jinja2',
         'repoze.zodbconn',
         'repoze.tm',
-        'repoze.what',
-        'repoze.what.plugins.ini',
+        'repoze.who',
         'webtest',
         'nose',
         ]
