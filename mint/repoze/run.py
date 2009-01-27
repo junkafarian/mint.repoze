@@ -1,8 +1,10 @@
 from repoze.bfg.router import make_app
 from repoze.bfg.settings import get_options
 from repoze.zodbconn.finder import PersistentApplicationFinder
+from zope.component import getUtility, getGlobalSiteManager
 
 from mint.repoze.urldispatch import RoutesMapper
+from mint.repoze.interfaces import IVideoContainer
 from mint.repoze.models import Video
 
 from os import makedirs
@@ -17,6 +19,8 @@ default_zodb_uri = 'file://' + abspath(default_zodb_uri)
 
 def is_valid_video(environ, result):
     name = result['video_name']
+    #gsm = getGlobalSiteManager()
+    #videos = gsm.getUtility(IVideoContainer)
     if  '.' in name or \
         name.startswith('_'):
         return False
@@ -36,16 +40,16 @@ class MintApp:
     
     def _get_root(self):
         #from mint.repoze.root import get_root as fallback_get_root
-        from mint.repoze.root import get_zodb_root
+        from mint.repoze.root import init_zodb_root
         zodb_uri = self.options['zodb_uri']
         stripped_zodb_uri = zodb_uri.replace('file://', '')
-        if not exists(stripped_zodb_uri):
+        if zodb_uri.split('://')[0] == 'file' and not exists(stripped_zodb_uri):
             log.info('`%s` does not exist, trying to create parent dirs')
             try:
                 makedirs(dirname(stripped_zodb_uri))
             except:
                 pass
-        get_root = PersistentApplicationFinder(zodb_uri, get_zodb_root)
+        get_root = PersistentApplicationFinder(zodb_uri, init_zodb_root)
         root = RoutesMapper(get_root)
         root = self.connect_routes(root)
         return root
@@ -58,9 +62,13 @@ class MintApp:
     @property
     def app(self):
         import mint.repoze
+        from repoze.zodbconn.middleware import EnvironmentDeleterMiddleware
+        from repoze.tm import TM
         from mint.repoze.auth import middleware as auth_middleware
         app = make_app(self.get_root, mint.repoze, options=self.options)
         app = auth_middleware(app)
+        app = TM(app)
+        app = EnvironmentDeleterMiddleware(app)
         return app
     
     def __call__(self, environ, start_response):

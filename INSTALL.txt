@@ -3,7 +3,8 @@ This application is built on top of repoze.bfg which is not available from PyPI.
 So within a virtualenv, lets install the base packages:
     
     $ easy_install -i http://dist.repoze.org/lemonade/dev/simple repoze.bfg
-    $ easy_install -i http://dist.repoze.org/lemonade/dev/simple repoze.bfg.jinja2
+    $ easy_install -i http://dist.repoze.org/lemonade/dev/simple repoze.zodbconn
+    $ easy_install -i http://dist.repoze.org/lemonade/dev/simple repoze.whoplugins.zodb
     
 (If you have any problems installing these packages, check out http://static.repoze.org/bfgdocs/narr/install.html)
 (we will try and provide a buildout script in future)

@@ -11,7 +11,7 @@ sample_video_container = VideoContainer(**sample_videos)
 
 users = {
     'admin': {
-        'user': 'admin',
+        'id': 'admin',
         'email': 'admin@mint.com',
         'password': 'test'
     }

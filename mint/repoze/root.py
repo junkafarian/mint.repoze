@@ -24,13 +24,21 @@ class Root(PersistentMapping):
         self.data[key] = value
     
 
-def get_zodb_root(zodb_root):
+def init_zodb_root(zodb_root):
     if not 'mint_root' in zodb_root:
-        from mint.repoze.test.data import sample_video_container
+        from mint.repoze.test.data import sample_video_container, users
+        from mint.repoze.models import UserContainer, User
         mint_root = Root()
         mint_root['videos'] = sample_video_container
+        mint_root['users'] = UserContainer()
+        mint_root['users'].add_user(**users['admin'])
         zodb_root['mint_root'] = mint_root
         import transaction
         transaction.commit()
+    return zodb_root['mint_root']
+
+def find_zodb_root(zodb_root):
+    if not 'mint_root' in zodb_root:
+        init_zodb_root(zodb_root)
     return zodb_root['mint_root']
 

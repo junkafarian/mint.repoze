@@ -1,0 +1,5 @@
+== TODO list ==
+
+- run repoze.who off htpasswd for testing
+- use `Supervisor` to chain zeo + paste
+- use `Supervisor` to chain zeo + paste + nosetests

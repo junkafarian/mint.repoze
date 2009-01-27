@@ -17,3 +17,12 @@ class IVideoContainer(Interface):
         """Return all contained Video objects which include `tag` as a HTML snippit"""
     
 
+class IUser(Interface):
+    id = TextLine(title=u"User ID")
+    email = TextLine(title=u"User email address")
+    password = TextLine(title=u"User password")
+
+class IUserContainer(Interface):
+    def add_user(id, *args, **kwargs):
+        """adds a new user to the container"""
+

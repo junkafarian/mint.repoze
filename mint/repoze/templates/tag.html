@@ -2,6 +2,8 @@
 {% block title %}tags | {{ context.tag }}{% endblock %}
 {% block body %}
   <h1>Welcome to mint, the new green.tv</h1>
-  This is a video page
-  {{ videos }}
+  Welcome to the {{ context.tag }} channel
+  {% for video in videos %}
+    {{ video }}
+  {% endfor %}
 {% endblock %}

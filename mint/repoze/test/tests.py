@@ -11,7 +11,7 @@ def login(user=users[u'admin'], url=u'/login.html', app=app):
     u"This is not a test!  It is a utility for other tests"
     res = app.get(url)
     form = res.forms[u'login']
-    form[u'login'] = user[u'user']
+    form[u'login'] = user[u'id']
     form[u'password'] = user[u'password']
     res = form.submit()
     res = res.follow()

@@ -30,6 +30,47 @@ login_form = """
 </html>
 """
 
+from zope.interface import implements
+from zope.component import getUtility, getGlobalSiteManager
+
+from repoze.who.interfaces import IAuthenticator
+from repoze.who.utils import resolveDotted
+from repoze.bfg.interfaces import IRootFactory
+
+from repoze.zodbconn.finder import dbfactory_from_uri
+
+class ZODBPlugin:
+    implements(IAuthenticator)
+    dbfactory = staticmethod(dbfactory_from_uri) # for testing override
+    
+    def __init__(self, zodb_uri, users_finder):
+        self.zodb_uri = zodb_uri
+        self.users_finder = users_finder
+        self.db = None
+    
+    def _getdb(self):
+        if self.db is None:
+            dbfactory = self.dbfactory(self.zodb_uri)
+            self.db = dbfactory()
+        return self.db
+    
+    def _getusers(self, conn):
+        root = conn.root()
+        return self.users_finder(root)
+    
+    def authenticate(self, environ, identity):
+        if not 'login' in identity:
+            return None
+        conn = self._getdb().open()
+        try:
+            users = self._getusers(conn)
+            user = users.get(identity['login'], None)
+            if user and user.password == identity['password']:
+                return user.id
+        finally:
+            conn.close()
+    
+
 def middleware(app):
     from repoze.who.middleware import PluggableAuthenticationMiddleware
     from repoze.who.interfaces import IIdentifier, IChallenger
@@ -37,12 +78,19 @@ def middleware(app):
     from repoze.who.plugins.auth_tkt import AuthTktCookiePlugin
     from repoze.who.plugins.cookie import InsecureCookiePlugin
     from repoze.who.plugins.form import FormPlugin
-    from repoze.who.plugins.htpasswd import HTPasswdPlugin
+    #from repoze.who.plugins.htpasswd import HTPasswdPlugin
     
     salt = 'aa'
     def cleartext_check(password, hashed):
         return password == hashed
-    htpasswd = HTPasswdPlugin('mint.passwd', cleartext_check)
+    
+    def find_users(root):
+        from mint.repoze.root import init_zodb_root
+        mint_root = init_zodb_root(root)
+        return mint_root['users']
+    
+    zodb = ZODBPlugin('zeo://localhost:8100', find_users)
+    #htpasswd = HTPasswdPlugin('mint.passwd', cleartext_check)
     basicauth = BasicAuthPlugin('Mint')
     auth_tkt = AuthTktCookiePlugin('secret', 'auth_tkt')
     # move to RedirectingFormPlugin
@@ -50,7 +98,8 @@ def middleware(app):
     form.classifications = { IIdentifier:['browser'],
                              IChallenger:['browser'] } # only for browser
     identifiers = [('form', form),('auth_tkt',auth_tkt),('basicauth',basicauth)]
-    authenticators = [('htpasswd', htpasswd)]
+    #authenticators = [('htpasswd', htpasswd)]
+    authenticators = [('zodb', zodb)]
     challengers = [('form', form),('basicauth',basicauth)]
     mdproviders = []
     

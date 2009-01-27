@@ -2,3 +2,6 @@
 *.cache
 .coverage
 mint.repoze.egg-info/*
+log/*
+bin/*
+var/*

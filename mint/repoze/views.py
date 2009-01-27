@@ -7,7 +7,7 @@ from zope.component import getUtility, getGlobalSiteManager
 
 from mint.repoze.root import Root
 from mint.repoze.models import Video
-from mint.repoze.interfaces import IVideo, IVideoContainer
+from mint.repoze.interfaces import IVideo, IVideoContainer, IUserContainer
 
 
 ## Utils
@@ -31,7 +31,11 @@ class ResponseTemplate(Response):
                 del self.kwargs[name]
         
         self.template = env.get_template(path)
-        super(ResponseTemplate, self).__init__(body=self.template.render(widgets=self.widgets, **self.template_kwargs), *self.args, **self.kwargs)
+        super(ResponseTemplate, self).__init__(
+            body=self.template.render(widgets=self.widgets, **self.template_kwargs), 
+            *self.args, 
+            **self.kwargs
+        )
     
     def add_widgets(self, context, request, *widgets):
         render_widgets = {}
@@ -75,6 +79,15 @@ def auth_widget(context, request):
 def main_ad_widget(context, request):
     return ResponseTemplate('widgets/main_ad.html', context=context, request=request)
 
+@bfg_view(name='tags_widget')
+def tags_widget(context, request):
+    return ResponseTemplate('widgets/tags.html', context=context, request=request)
+
+@bfg_view(name='video_widget')
+def video_widget(context, request):
+    return ResponseTemplate('widgets/video.html', context=context, request=request)
+
+
 
 ## Views
 
@@ -93,15 +106,16 @@ def video_redirect(context, request):
     return HTTPMovedPermanently(location = '/videos/' + context.video_name)
 
 @bfg_view(for_=IVideo, permission='view')
-@with_widgets('auth_widget')
+@with_widgets('auth_widget', 'tags_widget')
 def video(context, request):
-    return ResponseTemplate('real_video.html', context=context)
+    return ResponseTemplate('video.html', context=context)
 
 @bfg_view(name='tag')
 @with_widgets('auth_widget')
 def tag(context, request):
     gsm = getGlobalSiteManager()
-    videos = gsm.getUtility(IVideoContainer).get_videos_by_tag_as_html(context.tag)
+    videos = gsm.getUtility(IVideoContainer).get_videos_by_tag(context.tag)
+    videos = [render_view(video,request,'video_widget') for video in videos]
     return ResponseTemplate('tag.html', context=context, videos=videos)
 
 
@@ -122,6 +136,9 @@ def add_video_action(context, request):
     transaction.commit()
     return ResponseTemplate('add_video.html', message='Video successfully added')
 
+@bfg_view(name='index.html', for_=IUserContainer)
+def view_users(context,request):
+    return ResponseTemplate('view_users.html', context=context)
 
 ## /static/ 
 
