@@ -1,8 +1,8 @@
 {% extends "layout/master.html" %}
 {% block title %}videos | {{ context.name }}{% endblock %}
 {% block body %}
-  <h1>Welcome to mint, the new green.tv</h1>
-  This is a real video page
+  <h1>{{context.name}}</h1>
   <div class="videoplayer" id="{{context.name}}"></div>
+  <div class="full-description" id="{{context.name}}-description">{{context.description}}</div>
   {% if 'tags_widget' in widgets %}{{ widgets['tags_widget'] }}{% endif %}
 {% endblock %}

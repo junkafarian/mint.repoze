@@ -1,0 +1,17 @@
+{% extends "layout/master.html" %}
+{% block title %}home | Set Default Video{% endblock %}
+{% block body %}
+  <h1>Set Default Video</h1>
+  {{ message }}
+  <form action="" method="post">
+    <div>
+      <label for="video.name">name</label>
+      <select name="video.name">
+        {% for video in videos %}
+          <option>{{video}}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <input type="submit" />
+  </form>
+{% endblock %}

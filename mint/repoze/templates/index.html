@@ -4,6 +4,6 @@
   <h1>Welcome to mint, the new green.tv</h1>
   This is the homepage<br />
   And it has a video:
-  {{ context.videos['intro'].get_html() }}
+  {% if 'video_widget' in widgets %}{{ widgets['video_widget'] }}{% endif %}
   {% if 'main_ad_widget' in widgets %}{{ widgets['main_ad_widget'] }}{% endif %}
 {% endblock %}

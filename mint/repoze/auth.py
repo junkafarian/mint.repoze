@@ -43,9 +43,10 @@ class ZODBPlugin:
     implements(IAuthenticator)
     dbfactory = staticmethod(dbfactory_from_uri) # for testing override
     
-    def __init__(self, zodb_uri, users_finder):
+    def __init__(self, zodb_uri, users_finder, base):
         self.zodb_uri = zodb_uri
         self.users_finder = users_finder
+        self.base = base
         self.db = None
     
     def _getdb(self):
@@ -56,7 +57,7 @@ class ZODBPlugin:
     
     def _getusers(self, conn):
         root = conn.root()
-        return self.users_finder(root)
+        return self.users_finder(root, self.base)
     
     def authenticate(self, environ, identity):
         if not 'login' in identity:
@@ -71,12 +72,11 @@ class ZODBPlugin:
             conn.close()
     
 
-def middleware(app):
+def middleware(app, base):
     from repoze.who.middleware import PluggableAuthenticationMiddleware
     from repoze.who.interfaces import IIdentifier, IChallenger
     from repoze.who.plugins.basicauth import BasicAuthPlugin
     from repoze.who.plugins.auth_tkt import AuthTktCookiePlugin
-    from repoze.who.plugins.cookie import InsecureCookiePlugin
     from repoze.who.plugins.form import FormPlugin
     #from repoze.who.plugins.htpasswd import HTPasswdPlugin
     
@@ -84,12 +84,13 @@ def middleware(app):
     def cleartext_check(password, hashed):
         return password == hashed
     
-    def find_users(root):
-        from mint.repoze.root import init_zodb_root
-        mint_root = init_zodb_root(root)
+    def find_users(root, base):
+        from mint.repoze.root import ZODBInit
+        init = ZODBInit(base)
+        mint_root = init(root)
         return mint_root['users']
     
-    zodb = ZODBPlugin('zeo://localhost:8100', find_users)
+    zodb = ZODBPlugin('zeo://localhost:8100', find_users, base)
     #htpasswd = HTPasswdPlugin('mint.passwd', cleartext_check)
     basicauth = BasicAuthPlugin('Mint')
     auth_tkt = AuthTktCookiePlugin('secret', 'auth_tkt')

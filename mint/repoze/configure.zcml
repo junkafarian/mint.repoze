@@ -14,8 +14,7 @@
   />
     
   <!-- to save us having to write nasty xml configuration -->
-  <include package="repoze.bfg.convention" file="meta.zcml"/>
-  <convention package="." />
+  <scan package="." />
   
   <!--
   <view

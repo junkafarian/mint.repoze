@@ -86,8 +86,8 @@ class VideoContainer(PersistentMapping):
     def get_videos_by_tag(self, tag):
         """ Returns a list of video objects with the given tag
             >>> from mint.repoze.models import VideoContainer
-            >>> from mint.repoze.test.data import sample_videos
-            >>> vids = VideoContainer(**sample_videos)
+            >>> from mint.repoze.test.data import videos
+            >>> vids = VideoContainer(**videos)
             >>> vids.get_videos_by_tag('feature') # doctest: +ELLIPSIS
             [<Video name=...]
         """
@@ -96,8 +96,8 @@ class VideoContainer(PersistentMapping):
     def get_videos_by_tag_as_html(self, tag):
         """ Returns a list of video objects with the given tag
             >>> from mint.repoze.models import VideoContainer
-            >>> from mint.repoze.test.data import sample_videos
-            >>> vids = VideoContainer(**sample_videos)
+            >>> from mint.repoze.test.data import videos
+            >>> vids = VideoContainer(**videos)
             >>> vids.get_videos_by_tag_as_html('feature') # doctest: +ELLIPSIS
             u'<a href=...'
         """

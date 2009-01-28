@@ -85,21 +85,46 @@ def tags_widget(context, request):
 
 @bfg_view(name='video_widget')
 def video_widget(context, request):
-    return ResponseTemplate('widgets/video.html', context=context, request=request)
-
+    gsm = getGlobalSiteManager()
+    videos = gsm.getUtility(IVideoContainer)
+    video = videos.get(context.default_video, 'intro')
+    return ResponseTemplate('widgets/video.html', context=context, request=request, video=video)
 
 
 ## Views
 
 @bfg_view(name='', for_=Root, permission='view')
-@with_widgets('auth_widget', 'main_ad_widget')
+@with_widgets('auth_widget', 'main_ad_widget', 'video_widget')
 def index(context, request):
     return ResponseTemplate('index.html', context=context, request=request)
 
 @bfg_view(name='index.html', for_=Root, permission='view')
-@with_widgets('auth_widget', 'main_ad_widget')
+@with_widgets('auth_widget', 'main_ad_widget', 'video_widget')
 def index_page(context, request):
     return ResponseTemplate('index.html', context=context, request=request)
+
+@bfg_view(name="set_default_video.html", for_=Root, permission='edit')
+def set_default_video(context, request):
+    return ResponseTemplate('set_default_video.html', context=context, request=request)
+
+@bfg_view(name='set_default_video.html', for_=Root, request_type=IGETRequest, permission='edit')
+def set_default_video_form(context, request):
+    gsm = getGlobalSiteManager()
+    videos = gsm.getUtility(IVideoContainer)
+    return ResponseTemplate('set_default_video.html', message='Please select the video you would like to play on the home page', videos=videos.keys())
+
+@bfg_view(name='set_default_video.html', for_=Root, request_type=IPOSTRequest, permission='edit')
+def set_default_video_action(context, request):
+    form = request.POST
+    video = form.get('video.name')
+    gsm = getGlobalSiteManager()
+    if not video:
+        return ResponseTemplate('set_default_video.html', message='Please select a video', videos=gsm.getUtility(IVideoContainer))
+    context.default_video = video
+    import transaction
+    transaction.commit()
+    return ResponseTemplate('set_default_video.html', message='Default video set to %s' % video, videos=gsm.getUtility(IVideoContainer))
+
 
 @bfg_view(name='video_redirect')
 def video_redirect(context, request):

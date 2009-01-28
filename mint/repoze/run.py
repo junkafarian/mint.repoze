@@ -1,6 +1,6 @@
 from repoze.bfg.router import make_app
 from repoze.bfg.settings import get_options
-from repoze.zodbconn.finder import PersistentApplicationFinder
+#from repoze.zodbconn.finder import PersistentApplicationFinder
 from zope.component import getUtility, getGlobalSiteManager
 
 from mint.repoze.urldispatch import RoutesMapper
@@ -37,9 +37,19 @@ class MintApp:
         self.options = get_options(kw)
         self.options.update(kw)
         self.get_root = self._get_root()
+        # base = self.options['zodb_base']
+        # if base.startswith('test'):
+        #     log.info('wiping test db')
+        #     from mint.repoze.root import ZODBInit
+        #     init_zodb_root = ZODBInit(base)
+        #     get_root = PersistentApplicationFinder(zodb_uri, init_zodb_root.reset)
+        #     environ = {}
+        #     get_root(environ)
+        #     
     
     def _get_root(self):
         #from mint.repoze.root import get_root as fallback_get_root
+        from mint.repoze.root import PersistentApplicationFinder
         from mint.repoze.root import init_zodb_root
         zodb_uri = self.options['zodb_uri']
         stripped_zodb_uri = zodb_uri.replace('file://', '')
@@ -49,7 +59,10 @@ class MintApp:
                 makedirs(dirname(stripped_zodb_uri))
             except:
                 pass
-        get_root = PersistentApplicationFinder(zodb_uri, init_zodb_root)
+        base = self.options['zodb_base']
+        from mint.repoze.root import ZODBInit
+        init = ZODBInit(base)
+        get_root = PersistentApplicationFinder(zodb_uri, init)
         root = RoutesMapper(get_root)
         root = self.connect_routes(root)
         return root
@@ -66,7 +79,7 @@ class MintApp:
         from repoze.tm import TM
         from mint.repoze.auth import middleware as auth_middleware
         app = make_app(self.get_root, mint.repoze, options=self.options)
-        app = auth_middleware(app)
+        app = auth_middleware(app, self.options['zodb_base'])
         app = TM(app)
         app = EnvironmentDeleterMiddleware(app)
         return app
@@ -78,11 +91,11 @@ class MintApp:
         return u'<MintApp object>'
     
 
-def app(global_config, **kw):
+def makeapp(global_config, **kw):
     """ This function provides an interface to the MintApp WSGI application
-        >>> from mint.repoze.run import MintApp, app, default_zodb_uri
-        >>> testapp = app(global_config={}, zodb_uri=default_zodb_uri)
-        >>> repr(testapp) == repr(MintApp(zodb_uri=default_zodb_uri))
+        >>> from mint.repoze.run import MintApp, makeapp, default_zodb_uri
+        >>> testapp = makeapp(global_config={}, zodb_uri=default_zodb_uri, zodb_base='test_mint')
+        >>> repr(testapp) == repr(MintApp(zodb_uri=default_zodb_uri, zodb_base='test_mint'))
         True
     """
     return MintApp(**kw)

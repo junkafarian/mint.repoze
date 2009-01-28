@@ -17,6 +17,7 @@ requires = [
         'repoze.zodbconn',
         'repoze.tm',
         'repoze.who',
+        'jinja2',
         'webtest',
         'nose',
         ]
@@ -47,7 +48,7 @@ setup(name='mint.repoze',
       test_suite="nose.collector",
       entry_points = """\
       [paste.app_factory]
-      app = mint.repoze.run:app
+      app = mint.repoze.run:makeapp
       """
       )
 
