@@ -24,6 +24,20 @@ def login(user=users[u'admin'], url=u'/login.html', app=app):
         u'Should be a link to logout.'
     )
 
+def test_reset_root():
+    from mint.repoze.root import ZODBInit
+    from mint.repoze.root import PersistentApplicationFinder
+    init_zodb_root = ZODBInit('test_mint')
+    # TODO: abstract
+    get_root = PersistentApplicationFinder('zeo://localhost:8100/', init_zodb_root.reset)
+    environ = {}
+    root = get_root(environ)
+    
+    print root
+    assert_true(
+        hasattr(root, 'default_video'),
+        u'root object should have `default_video` attribute'
+    )
 
 def test_valid_root():
     """root returns a `200` status code"""
@@ -75,11 +89,6 @@ def test_video_page():
         'class="videoplayer"' in res.body,
         u'video should have a video player'
     )
-
-def test_intro_video_on_root():
-    """root has a `intro` video"""
-    res = app.get('/')
-    assert 'div class="videoplayer" id="intro"' in res.body
 
 def test_intro_video_page():
     """`/video/intro` has a `intro` video"""
@@ -162,6 +171,8 @@ def test_reachable_zopish_static():
         u'`200` not in response'
     )
 
+
+
 @with_setup(login)
 def test_add_video():
     """Publish a new video through the web interface"""
@@ -195,6 +206,23 @@ def test_add_video():
     assert_true(
         'testvid1' in res.body,
         u'video not searchable by tags'
+    )
+    
+    res = app.post(
+        '/set_default_video.html',
+        {
+            'video.name': 'testvid1'
+        }
+    )
+    assert_true(
+        'Default video set to testvid1' in res.body,
+        u'Default video should have been updated'
+    )
+    
+    res = app.get('/')
+    assert_true(
+        'testvid1' in res.body,
+        u'Should have taken effect on homepage'
     )
     
 
