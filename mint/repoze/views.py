@@ -83,6 +83,10 @@ def main_ad_widget(context, request):
 def tags_widget(context, request):
     return ResponseTemplate('widgets/tags.html', context=context, request=request)
 
+@bfg_view(name='video_listing_widget')
+def video_listing_widget(context, request):
+    return ResponseTemplate('widgets/video_listing.html', context=context, request=request)
+
 @bfg_view(name='video_widget')
 def video_widget(context, request):
     gsm = getGlobalSiteManager()
@@ -140,7 +144,7 @@ def video(context, request):
 def tag(context, request):
     gsm = getGlobalSiteManager()
     videos = gsm.getUtility(IVideoContainer).get_videos_by_tag(context.tag)
-    videos = [render_view(video,request,'video_widget') for video in videos]
+    videos = [render_view(video,request,'video_listing_widget') for video in videos]
     return ResponseTemplate('tag.html', context=context, videos=videos)
 
 
@@ -164,6 +168,7 @@ def add_video_action(context, request):
 @bfg_view(name='index.html', for_=IUserContainer)
 def view_users(context,request):
     return ResponseTemplate('view_users.html', context=context)
+
 
 ## /static/ 
 
