@@ -37,18 +37,8 @@ class MintApp:
         self.options = get_options(kw)
         self.options.update(kw)
         self.get_root = self._get_root()
-        # base = self.options['zodb_base']
-        # if base.startswith('test'):
-        #     log.info('wiping test db')
-        #     from mint.repoze.root import ZODBInit
-        #     init_zodb_root = ZODBInit(base)
-        #     get_root = PersistentApplicationFinder(zodb_uri, init_zodb_root.reset)
-        #     environ = {}
-        #     get_root(environ)
-        #     
     
     def _get_root(self):
-        #from mint.repoze.root import get_root as fallback_get_root
         from mint.repoze.root import PersistentApplicationFinder
         from mint.repoze.root import init_zodb_root
         zodb_uri = self.options['zodb_uri']
@@ -75,13 +65,9 @@ class MintApp:
     @property
     def app(self):
         import mint.repoze
-        from repoze.zodbconn.middleware import EnvironmentDeleterMiddleware
-        from repoze.tm import TM
         from mint.repoze.auth import middleware as auth_middleware
         app = make_app(self.get_root, mint.repoze, options=self.options)
         app = auth_middleware(app, self.options['zodb_base'])
-        app = TM(app)
-        app = EnvironmentDeleterMiddleware(app)
         return app
     
     def __call__(self, environ, start_response):

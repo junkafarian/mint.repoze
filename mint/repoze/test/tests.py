@@ -77,6 +77,7 @@ def test_ads_on_index():
 def test_video_page():
     """video page contains video name"""
     res = app.get('/videos/intro')
+    print res.body
     assert_true(
         'intro' in res.body,
         u'video name should be within the video page'
@@ -93,7 +94,10 @@ def test_video_page():
 def test_intro_video_page():
     """`/video/intro` has a `intro` video"""
     res = app.get('/videos/intro')
-    assert 'div class="videoplayer" id="intro"' in res.body
+    assert_true(
+        'div class="videoplayer" id="intro"' in res.body,
+        u'video should have a video player'
+    )
     res = res.click('feature')
     test_tag_page(res)
 
@@ -152,7 +156,7 @@ def test_tag_page(res=None):
         u'intro should be a featured video'
     )
     
-    res = res.click('oil_on_ice')
+    res = res.click('Oil on Ice')
     test_oil_on_ice_video(res)
 
 def test_reachable_static():

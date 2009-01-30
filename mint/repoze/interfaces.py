@@ -1,20 +1,21 @@
 from zope.interface import Interface
-from zope.schema import TextLine, Text, List
+from zope.schema import TextLine, Text, List, Dict
 
 class IVideo(Interface):
     
     name = TextLine(title=u'Video Name')
     description = Text(title=u'Video Description')
     tags = List(title=u'Video Tags', value_type=TextLine())
+    encodes = Dict(title=u'Encodes')
+    dirname = TextLine(title=u'Encode storage directory')
     
+    def save_encode(stream, encode='mp4', dst=None, buffer_size=16384):
+        """Stores a new encode against the object"""
 
 class IVideoContainer(Interface):
     
     def get_videos_by_tag(tag):
         """Return all contained Video objects which include `tag`"""
-    
-    def get_videos_by_tag_as_html(tag):
-        """Return all contained Video objects which include `tag` as a HTML snippit"""
     
 
 class IUser(Interface):

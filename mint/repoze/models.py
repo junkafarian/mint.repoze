@@ -1,16 +1,20 @@
 from zope.interface import implements
 from repoze.bfg.security import Everyone, Allow, Deny
+from repoze.bfg.interfaces import ILocation
 
 from mint.repoze.interfaces import IVideo, IVideoContainer, IUser, IUserContainer
+from persistent import Persistent
 from persistent.mapping import PersistentMapping
+from persistent.dict import PersistentDict
 
+import logging
 
-class Video(object):
+class Video(Persistent):
     """ A simple Video object
         
         >>> from mint.repoze.interfaces import IVideo
         >>> from mint.repoze.models import Video
-        >>> ob = Video(name=u'name', description=u'description', tags=[u'tag1', u'tag2', u'tag3'])
+        >>> ob = Video(uid=u'name', name=u'name', description=u'description', tags=[u'tag1', u'tag2', u'tag3'])
         >>> ob.name == u'name'
         True
         >>> ob.description == u'description'
@@ -22,8 +26,6 @@ class Video(object):
         >>> ob.tags.append(u'tag4')
         >>> u'tag4' in ob.tags
         True
-        >>> u'<div class="videoplayer" id="name">' in ob.get_html()
-        True
         >>> IVideo.providedBy(ob)
         True
         
@@ -34,22 +36,54 @@ class Video(object):
             (Allow, 'admin', 'edit'),
             ]
     
-    implements(IVideo)
+    implements(IVideo,ILocation)
     
-    def __init__(self, name, description, tags):
+    encodes = {}
+    
+    def __init__(self, uid, name, description, tags, encodes={}, encode_dir='var/videos/'):
+        """ Receives encodes in the form:
+                encodes = {
+                    'mp4': <FileStream>,
+                    'mov': <FileStream>,
+                    ...
+                }
+        """
+        self.__name__ = uid
         self.name = name
         self.description = description
         self.tags = tags
+        # save file and keep reference
+        from os.path import join
+        from os import makedirs
+        video_dir = encode_dir
+        self.dirname = join(video_dir, self.__name__)
+        try:
+            makedirs(self.dirname)
+        except OSError:
+            pass
+        for k,v in encodes.items():
+            self.encodes[k] = self.save_encode(v,k)
+    
+    def save_encode(self, stream, encode='mp4', dst=None, buffer_size=16384):
+        from shutil import copyfileobj
+        from os.path import abspath, join
+        if dst is None:
+            dst = join(self.dirname, '%s.%s' % (self.__name__, encode))
+        if not isinstance(dst, basestring):
+            raise TypeError('Destination should be a string not a %s' % type(dst))
+        dst = abspath(dst)
+        dst_file = file(dst, 'wb')
+        try:
+            copyfileobj(stream, dst_file, buffer_size)
+        except:
+            dst_file.close()
+            return None
+        else:
+            dst_file.close()
+            return dst
     
     def __repr__(self):
         return u'<Video name=%s>' % self.name
-    
-    def get_html(self):
-        markup = u'<div class="videoplayer" id="%s"></div>\n' % self.name
-        link = u'<a href="/tags/%(name)s">%(name)s</a>'
-        links = [link % {u'name': tag} for tag in self.tags]
-        markup += u'<div id="tags">%s</div>\n' % links
-        return markup
     
 
 class VideoContainer(PersistentMapping):
@@ -62,7 +96,7 @@ class VideoContainer(PersistentMapping):
         True
         >>> len(ob)
         0
-        >>> ob[u'vid1'] = Video('vid1', 'description', [])
+        >>> ob[u'vid1'] = Video('vid1', 'Video 1', 'description', [])
         >>> len(ob)
         1
         >>> ob.keys()
@@ -75,40 +109,58 @@ class VideoContainer(PersistentMapping):
             (Allow, 'admin', 'edit'),
             ]
     
-    implements(IVideoContainer)
+    implements(IVideoContainer,ILocation)
     
-    def __init__(self, **kwargs):
-        self.data = dict(**kwargs)
+    encode_dir = 'var/videos/'
+    
+    def __init__(self, *args, **kwargs):
+        self.data = PersistentDict()
+        for data in args:
+            self.add_video(*data)
+        for v in kwargs.values():
+            pass
+    
+    def __getitem__(self, key):
+        return self.data.__getitem__(key)
+    
+    def __setitem__(self, key, value):
+        return self.data.__setitem__(key, value)
+    
+    def items(self):
+        return self.data.items()
+    
+    def keys(self):
+        return self.data.keys()
+    
+    def values(self):
+        return self.data.values()
     
     def __repr__(self):
         return u'<VideoContainer object>'
     
+    def add_video(self, name, description, tags, encodes={}):
+        uid = name.lower().replace(' ', '_')
+        counter = 1
+        while uid in self:
+            uid = '%s_%03d' % (uid, counter)
+            counter += 1
+        self.data[uid] = Video(uid, name, description, tags, encodes, self.encode_dir)
+        import transaction
+        transaction.commit()
+    
     def get_videos_by_tag(self, tag):
         """ Returns a list of video objects with the given tag
             >>> from mint.repoze.models import VideoContainer
-            >>> from mint.repoze.test.data import videos
-            >>> vids = VideoContainer(**videos)
+            >>> from mint.repoze.test.data import video_data
+            >>> vids = VideoContainer(*video_data)
             >>> vids.get_videos_by_tag('feature') # doctest: +ELLIPSIS
             [<Video name=...]
         """
-        return [video for video in self.values() if tag in video.tags]
-    
-    def get_videos_by_tag_as_html(self, tag):
-        """ Returns a list of video objects with the given tag
-            >>> from mint.repoze.models import VideoContainer
-            >>> from mint.repoze.test.data import videos
-            >>> vids = VideoContainer(**videos)
-            >>> vids.get_videos_by_tag_as_html('feature') # doctest: +ELLIPSIS
-            u'<a href=...'
-        """
-        videos = self.get_videos_by_tag(tag)
-        link = u'<a href="/videos/%(name)s">%(name)s</a>'
-        links = [link % {'name': video.name} for video in videos]
-        return u'\n'.join(links)
+        return [video for video in self.data.values() if tag in video.tags]
     
 
 
-class User(object):
+class User(Persistent):
     """ A simple object for a User
         
         >>> from mint.repoze.interfaces import IUser

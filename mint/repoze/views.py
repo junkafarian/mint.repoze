@@ -142,9 +142,14 @@ def video(context, request):
 @bfg_view(name='tag')
 @with_widgets('auth_widget')
 def tag(context, request):
-    gsm = getGlobalSiteManager()
-    videos = gsm.getUtility(IVideoContainer).get_videos_by_tag(context.tag)
-    videos = [render_view(video,request,'video_listing_widget') for video in videos]
+    #gsm = getGlobalSiteManager()
+    #videos = gsm.getUtility(IVideoContainer).get_videos_by_tag(context.tag)
+    from mint.repoze.root import ZODBInit
+    from mint.repoze.root import PersistentApplicationFinder
+    init = ZODBInit('test_mint')
+    get_root = PersistentApplicationFinder('zeo://localhost:8100/', init)
+    videos = get_root(request.environ)['videos']
+    videos = [render_view(video,request,'video_listing_widget') for video in videos.values()]
     return ResponseTemplate('tag.html', context=context, videos=videos)
 
 
@@ -160,7 +165,12 @@ def add_video_action(context, request):
     tags = form.get('video.tags')
     if not (name and description and tags):
         return ResponseTemplate('add_video.html', message='Missing fields')
-    context[name] = Video(name, description, tags.replace(' ','').split(','))
+    encodes = {}
+    f = form.get('video.file')
+    if not isinstance(f, basestring) and f is not None:
+        encodes['mp4'] = f.file
+    context.add_video(name, description, tags.replace(' ','').split(','), encodes)
+    #context[name] = Video(name, description, tags.replace(' ','').split(','), encodes, parent=context)
     import transaction
     transaction.commit()
     return ResponseTemplate('add_video.html', message='Video successfully added')
@@ -176,4 +186,11 @@ def view_users(context,request):
 def static_view(context, request):
     from mint.repoze.urldispatch import static
     return static('mint/repoze/static')(context, request)
+
+## /videos/
+
+@bfg_view(name='encodes', for_=Root)
+def encodes_view(context, request):
+    from mint.repoze.urldispatch import static
+    return static('var/videos')(context, request)
 

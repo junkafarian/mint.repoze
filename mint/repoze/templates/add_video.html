@@ -4,10 +4,11 @@
   <h1>Welcome to mint, the new green.tv</h1>
   Here you can add a video
   {{ message }}
-  <form action="" method="post">
-    <div><label for="video.name">name</label><input name="video.name" type="text" /></div>
-    <div><label for="video.description">description</label><textarea name="video.description"></textarea></div>
-    <div><label for="video.tags">tags</label><input name="video.tags" type="text" /></div>
+  <form action="" method="post" enctype="multipart/form-data">
+    <div><label for="video.name">Name</label><input name="video.name" type="text" /></div>
+    <div><label for="video.description">Description</label><textarea name="video.description"></textarea></div>
+    <div><label for="video.tags">Tags</label><input name="video.tags" type="text" /></div>
+    <div><label for="video.file">Video File</label><input name="video.file" type="file" /></div>
     <input type="submit" />
   </form>
 {% endblock %}

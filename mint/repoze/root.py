@@ -86,7 +86,14 @@ class ZODBInit:
     
 
 
-from repoze.zodbconn.finder import dbfactory_from_uri, Cleanup
+from repoze.zodbconn.finder import dbfactory_from_uri#, Cleanup
+
+class Cleanup:
+    def __init__(self, cleaner):
+        self.cleaner = cleaner
+
+    def __del__(self):
+        self.cleaner()
 
 class PersistentApplicationFinder:
     db = None
