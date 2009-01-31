@@ -10,5 +10,4 @@ def registerUtilities(event):
     gsm = getGlobalSiteManager()
     gsm.registerUtility(videos, IVideoContainer)
     gsm.registerUtility(users, IUserContainer)
-    del environ
 

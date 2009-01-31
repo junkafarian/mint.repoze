@@ -170,7 +170,6 @@ def add_video_action(context, request):
     if not isinstance(f, basestring) and f is not None:
         encodes['mp4'] = f.file
     context.add_video(name, description, tags.replace(' ','').split(','), encodes)
-    #context[name] = Video(name, description, tags.replace(' ','').split(','), encodes, parent=context)
     import transaction
     transaction.commit()
     return ResponseTemplate('add_video.html', message='Video successfully added')
