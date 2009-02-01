@@ -6,23 +6,39 @@ from os.path import abspath, dirname, join
 
 app = TestApp('config:' + join(dirname(__file__), 'testing.ini'))
 
+def logout(url=u'/logout.html', app=app):
+    u"This is not a test!  It is a utility for other tests"
+    res = app.get(url)
+    if u'logout' in res.body:
+        res.click(u'logout')
+        res.follow()
+    
+    assert_true(
+        u'logout' not in res.body,
+        u'User should not be logged in'
+    )
+    
+
 def login(user=users[u'admin'], url=u'/login.html', app=app):
     u"This is not a test!  It is a utility for other tests"
     res = app.get(url)
-    form = res.forms[u'login']
-    form[u'login'] = user[u'id']
-    form[u'password'] = user[u'password']
-    res = form.submit()
-    res = res.follow()
-    res = res.follow()
-    assert_true(
-        user[u'id'] in res.body,
-        u'Should be logged in.'
-    )
-    assert_true(
-        u'logout' in res.body,
-        u'Should be a link to logout.'
-    )
+    try:
+        form = res.forms[u'login']
+        form[u'login'] = user[u'id']
+        form[u'password'] = user[u'password']
+        res = form.submit()
+        res = res.follow()
+        res = res.follow()
+        assert_true(
+            user[u'id'] in res.body,
+            u'Should be logged in.'
+        )
+        assert_true(
+            u'logout' in res.body,
+            u'Should be a link to logout.'
+        )
+    except KeyError:
+        print res
 
 def test_reset_root():
     from mint.repoze.root import ZODBInit
@@ -177,7 +193,7 @@ def test_reachable_zopish_static():
 
 
 
-@with_setup(login)
+@with_setup(login,logout)
 def test_add_video():
     """Publish a new video through the web interface"""
     res = app.get('/videos/add_video.html')
@@ -230,8 +246,28 @@ def test_add_video():
     )
     
 
-def test_rules_the_world():
+@with_setup(login,logout)
+def test_set_default_video():
+    res = app.get('/set_default_video.html')
+    form = res.form
+    current_default = form['video.name.current'].value
+    videos = form['video.name'].options
+    i = 0
+    while videos[i][0] == current_default:
+        i += 1
+    target_default = videos[i][0]
+    form['video.name'].value = target_default
+    
+    res = form.submit()
+    new_form = res.form
+    
+    assert_true(
+        new_form['video.name.current'].value == target_default,
+        u"Default video should have been updated"
+    )
+
+def test_rules_the_world(world=True):
     """This app rules the world"""
     print u'well done you broke the mould'
-    assert True
+    assert world
 
