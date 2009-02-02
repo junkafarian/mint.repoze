@@ -26,6 +26,4 @@ users = {
     }
 }
 
-# Adverts
-
 adverts = []

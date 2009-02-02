@@ -196,12 +196,21 @@ class AdSpace(Persistent):
         >>> from mint.repoze.models import AdSpace
         >>> from mint.repoze.test.data import adverts
         >>> banner = AdSpace(uid=u'main_banner', height=60, width=468, allowed_formats=(u'img', u'swf'), adverts=adverts)
+        >>> IAdSpace.providedBy(banner)
+        True
     """
-    implements(IAdvert)
+    implements(IAdSpace)
     
-    def __init__(self, uid, height, width, allowed_formats=(u'img', u'swf'), adverts=None):
-        pass
+    def __init__(self, uid, height, width, allowed_formats=(u'img', u'swf'), adverts=[]):
+        self.__name__ = uid
+        self.height = height
+        self.width = width
+        self.allowed_formats = allowed_formats
+        self.adverts = adverts
     
+    def __setattr__(self, key, value):
+        if not IAdvert.providedBy(value):
+            raise ValueError()
 
 class User(Persistent):
     """ A simple object for a User
