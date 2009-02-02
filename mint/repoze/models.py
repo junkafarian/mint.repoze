@@ -206,12 +206,45 @@ class AdSpace(Persistent):
         self.height = height
         self.width = width
         self.allowed_formats = allowed_formats
-        self.adverts = adverts
+        
+        class Adverts(list):
+            def __setitem__(self,key,value):
+                if not IAdvert.providedBy(value):
+                    raise ValueError('values must implement IAdvert')
+                super(Adverts,self).__setitem__(key,value)
+            
+            def append(self,value):
+                if not IAdvert.providedBy(value):
+                    raise ValueError('values must implement IAdvert')
+                super(Adverts,self).append(value)
+        
+        self.adverts = Adverts(adverts)
+        # self.adverts.__setitem__ = self.__setitem__
     
-    def __setattr__(self, key, value):
-        print key, value
-        if not IAdvert.providedBy(value):
-            raise ValueError()
+    def __setitem__(self, key, value):
+        """ Ensures items added to the adverts implement IAdvert
+            
+            >>> from mint.repoze.models import AdSpace
+            >>> from mint.repoze.interfaces import IAdvert
+            >>> from zope.interface import implements
+            >>> banner = AdSpace(uid=u'main_banner', height=60, width=468)
+            >>> class ExampleAdvert(object):
+            ...     implements(IAdvert)
+            >>> banner.append(ExampleAdvert())
+            >>> banner.append(object()) # doctest: +ELLIPSIS
+            Traceback (most recent call last):
+            ...
+            ValueError: values must implement IAdvert
+            
+        """
+        self.adverts[key] = value
+    
+    def append(self, key):
+        self.adverts.append(key)
+    
+    def __getitem__(self, key):
+        return self.adverts[key]
+    
 
 class User(Persistent):
     """ A simple object for a User
