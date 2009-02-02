@@ -1,3 +1,5 @@
+## Videos
+
 from mint.repoze.models import Video, VideoContainer
 
 videos = dict(
@@ -14,6 +16,7 @@ video_data = [
 
 video_container = VideoContainer(*video_data)
 
+## Users
 
 users = {
     'admin': {
@@ -22,3 +25,7 @@ users = {
         'password': 'test'
     }
 }
+
+# Adverts
+
+adverts = []

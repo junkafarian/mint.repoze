@@ -2,7 +2,9 @@ from zope.interface import implements
 from repoze.bfg.security import Everyone, Allow, Deny
 from repoze.bfg.interfaces import ILocation
 
-from mint.repoze.interfaces import IVideo, IVideoContainer, IUser, IUserContainer
+from mint.repoze.interfaces import IVideo, IVideoContainer
+from mint.repoze.interfaces import IAdvert, IAdSpace
+from mint.repoze.interfaces import IUser, IUserContainer
 from persistent import Persistent
 from persistent.mapping import PersistentMapping
 from persistent.dict import PersistentDict
@@ -159,6 +161,47 @@ class VideoContainer(PersistentMapping):
         return [video for video in self.data.values() if tag in video.tags]
     
 
+class Advert(Persistent):
+    """ A convenience class for storing information related to a single advert
+        
+        >>> from mint.repoze.interfaces import IAdvert
+        >>> from mint.repoze.models import Advert
+        >>> ad = Advert(uid=u'largeblue', title=u'largeblue productions ltd.', content=u'', content_type=u'img',
+        ...             height=60, width=468, link=u'http://largeblue.com/', extra_html=u'')
+        >>> IAdvert.providedBy(ad)
+        True
+        
+    """
+    implements(IAdvert)
+    
+    def __init__(self, uid, title, content, content_type, height=None, width=None, link=None, extra_html=None):
+        self.__name__ = uid
+        self.title = title
+        ##TODO: save file to filesystem
+        if isinstance(content, file):
+            content = content.read()
+        self.content = content
+        self.content_type = content_type
+        self.height = height
+        self.width = width
+        self.link = link
+        self.extra_html = extra_html
+    
+
+class AdSpace(Persistent):
+    """ Objects used for online advertising space.
+        Stores Image or Flash data to be rendered within the page:
+        
+        >>> from mint.repoze.interfaces import IAdSpace
+        >>> from mint.repoze.models import AdSpace
+        >>> from mint.repoze.test.data import adverts
+        >>> banner = AdSpace(uid=u'main_banner', height=60, width=468, allowed_formats=(u'img', u'swf'), adverts=adverts)
+    """
+    implements(IAdvert)
+    
+    def __init__(self, uid, height, width, allowed_formats=(u'img', u'swf'), adverts=None):
+        pass
+    
 
 class User(Persistent):
     """ A simple object for a User
