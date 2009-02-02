@@ -208,9 +208,9 @@ class AdSpace(Persistent):
         self.allowed_formats = allowed_formats
         self.adverts = adverts
     
-    def __setattr__(self, key, value):
-        if not IAdvert.providedBy(value):
-            raise ValueError()
+    # def __setattr__(self, key, value):
+    #     if not IAdvert.providedBy(value):
+    #         raise ValueError()
 
 class User(Persistent):
     """ A simple object for a User
