@@ -22,3 +22,5 @@ users = {
         'password': 'test'
     }
 }
+
+adverts = []
