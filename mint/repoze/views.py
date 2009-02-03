@@ -88,10 +88,13 @@ def video_listing_widget(context, request):
     return ResponseTemplate('widgets/video_listing.html', context=context, request=request)
 
 @bfg_view(name='video_widget')
-def video_widget(context, request):
+def video_widget(context, request, default_video='intro'):
     gsm = getGlobalSiteManager()
     videos = gsm.getUtility(IVideoContainer)
-    video = videos.get(context.default_video, 'intro')
+    try:
+        video = videos.get(context.default_video, default_video)
+    except:
+        video = videos.get(default_video)
     return ResponseTemplate('widgets/video.html', context=context, request=request, video=video)
 
 
@@ -114,7 +117,7 @@ def set_default_video(context, request):
 @bfg_view(name='set_default_video.html', for_=Root, request_type=IGETRequest, permission='edit')
 def set_default_video_form(context, request):
     gsm = getGlobalSiteManager()
-    videos = gsm.getUtility(IVideoContainer)
+    videos = gsm.getUtility(IVideoContainer, 'videos')
     return ResponseTemplate('set_default_video.html', message='Please select the video you would like to play on the home page', videos=videos.keys())
 
 @bfg_view(name='set_default_video.html', for_=Root, request_type=IPOSTRequest, permission='edit')
@@ -143,7 +146,7 @@ def video(context, request):
 @with_widgets('auth_widget')
 def tag(context, request):
     gsm = getGlobalSiteManager()
-    videos = gsm.getUtility(IVideoContainer).get_videos_by_tag(context.tag)
+    videos = gsm.getUtility(IVideoContainer, 'videos').get_videos_by_tag(context.tag)
     videos = [render_view(video,request,'video_listing_widget') for video in videos]
     return ResponseTemplate('tag.html', context=context, videos=videos)
 
