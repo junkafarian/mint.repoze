@@ -103,22 +103,22 @@ def video_widget(context, request, default_video='intro'):
 @bfg_view(name='', for_=Root, permission='view')
 @with_widgets('auth_widget', 'main_ad_widget', 'video_widget')
 def index(context, request):
-    return ResponseTemplate('index.html', context=context, request=request)
+    return ResponseTemplate('pages/index.html', context=context, request=request)
 
 @bfg_view(name='index.html', for_=Root, permission='view')
 @with_widgets('auth_widget', 'main_ad_widget', 'video_widget')
 def index_page(context, request):
-    return ResponseTemplate('index.html', context=context, request=request)
+    return ResponseTemplate('pages/index.html', context=context, request=request)
 
 @bfg_view(name="set_default_video.html", for_=Root, permission='edit')
 def set_default_video(context, request):
-    return ResponseTemplate('set_default_video.html', context=context, request=request)
+    return ResponseTemplate('pages/set_default_video.html', context=context, request=request)
 
 @bfg_view(name='set_default_video.html', for_=Root, request_type=IGETRequest, permission='edit')
 def set_default_video_form(context, request):
     gsm = getGlobalSiteManager()
-    videos = gsm.getUtility(IVideoContainer, 'videos')
-    return ResponseTemplate('set_default_video.html', message='Please select the video you would like to play on the home page', videos=videos.keys())
+    videos = gsm.getUtility(IVideoContainer)
+    return ResponseTemplate('pages/set_default_video.html', context=context, message='Please select the video you would like to play on the home page', videos=videos.values())
 
 @bfg_view(name='set_default_video.html', for_=Root, request_type=IPOSTRequest, permission='edit')
 def set_default_video_action(context, request):
@@ -126,11 +126,11 @@ def set_default_video_action(context, request):
     video = form.get('video.name')
     gsm = getGlobalSiteManager()
     if not video:
-        return ResponseTemplate('set_default_video.html', message='Please select a video', videos=gsm.getUtility(IVideoContainer))
+        return ResponseTemplate('pages/set_default_video.html', context=context, message='Please select a video', videos=gsm.getUtility(IVideoContainer).values())
     context.default_video = video
     import transaction
     transaction.commit()
-    return ResponseTemplate('set_default_video.html', message='Default video set to %s' % video, videos=gsm.getUtility(IVideoContainer))
+    return ResponseTemplate('pages/set_default_video.html', context=context, message='Default video set to %s' % video, videos=gsm.getUtility(IVideoContainer).values())
 
 
 @bfg_view(name='video_redirect')
@@ -140,20 +140,25 @@ def video_redirect(context, request):
 @bfg_view(for_=IVideo, permission='view')
 @with_widgets('auth_widget', 'tags_widget')
 def video(context, request):
-    return ResponseTemplate('video.html', context=context)
+    return ResponseTemplate('pages/video.html', context=context)
 
 @bfg_view(name='tag')
 @with_widgets('auth_widget')
 def tag(context, request):
-    gsm = getGlobalSiteManager()
-    videos = gsm.getUtility(IVideoContainer, 'videos').get_videos_by_tag(context.tag)
-    videos = [render_view(video,request,'video_listing_widget') for video in videos]
-    return ResponseTemplate('tag.html', context=context, videos=videos)
+    #gsm = getGlobalSiteManager()
+    #videos = gsm.getUtility(IVideoContainer).get_videos_by_tag(context.tag)
+    from mint.repoze.root import ZODBInit
+    from mint.repoze.root import PersistentApplicationFinder
+    init = ZODBInit('test_mint')
+    get_root = PersistentApplicationFinder('zeo://localhost:8100/', init)
+    videos = get_root(request.environ)['videos']
+    videos = [render_view(video,request,'video_listing_widget') for video in videos.values()]
+    return ResponseTemplate('pages/tag.html', context=context, videos=videos)
 
 
 @bfg_view(name='add_video.html', for_=IVideoContainer, request_type=IGETRequest, permission='edit')
 def add_video_form(context, request):
-    return ResponseTemplate('add_video.html', message='Please complete the form below')
+    return ResponseTemplate('pages/add_video.html', message='Please complete the form below')
 
 @bfg_view(name='add_video.html', for_=IVideoContainer, request_type=IPOSTRequest, permission='edit')
 def add_video_action(context, request):
@@ -162,15 +167,19 @@ def add_video_action(context, request):
     description = form.get('video.description')
     tags = form.get('video.tags')
     if not (name and description and tags):
-        return ResponseTemplate('add_video.html', message='Missing fields')
-    context[name] = Video(name, description, tags.replace(' ','').split(','))
+        return ResponseTemplate('pages/add_video.html', message='Missing fields')
+    encodes = {}
+    f = form.get('video.file')
+    if not isinstance(f, basestring) and f is not None:
+        encodes['mp4'] = f.file
+    context.add_video(name, description, tags.replace(' ','').split(','), encodes)
     import transaction
     transaction.commit()
-    return ResponseTemplate('add_video.html', message='Video successfully added')
+    return ResponseTemplate('pages/add_video.html', message='Video successfully added')
 
 @bfg_view(name='index.html', for_=IUserContainer)
 def view_users(context,request):
-    return ResponseTemplate('view_users.html', context=context)
+    return ResponseTemplate('pages/view_users.html', context=context)
 
 
 ## /static/ 
@@ -179,4 +188,11 @@ def view_users(context,request):
 def static_view(context, request):
     from mint.repoze.urldispatch import static
     return static('mint/repoze/static')(context, request)
+
+## /videos/
+
+@bfg_view(name='encodes', for_=Root)
+def encodes_view(context, request):
+    from mint.repoze.urldispatch import static
+    return static('var/videos')(context, request)
 

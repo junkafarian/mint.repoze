@@ -1,3 +1,5 @@
-<div class="video-listing" id="{{context.name}}-listing">
-  <div class="video-listing-title"><a href="/videos/{{context.name}}">{{context.name}}</a></div>
+<div class="video-listing" id="{{context.__name__}}-listing">
+  {{context}}
+  <div class="video-listing-title"><a href="/videos/{{context.__name__}}">{{context.name}}</a></div>
+  <div class="video-listing-encodes">{{', '.join(context.encodes.keys())}}</div>
 </div>

@@ -5,10 +5,11 @@
   {{ message }}
   <form action="" method="post">
     <div>
+      <input type="hidden" name="video.name.current" value="{{context.default_video}}" />
       <label for="video.name">name</label>
       <select name="video.name">
         {% for video in videos %}
-          <option>{{video}}</option>
+          <option value="{{video.__name__}}">{{video.name}}</option>
         {% endfor %}
       </select>
     </div>
