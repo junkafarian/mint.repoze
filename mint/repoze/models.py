@@ -161,6 +161,7 @@ class VideoContainer(PersistentMapping):
         return [video for video in self.data.values() if tag in video.tags]
     
 
+
 class Advert(Persistent):
     """ A convenience class for storing information related to a single advert
         
@@ -245,6 +246,7 @@ class AdSpace(Persistent):
     def __getitem__(self, key):
         return self.adverts[key]
     
+
 
 class User(Persistent):
     """ A simple object for a User
