@@ -88,10 +88,13 @@ def video_listing_widget(context, request):
     return ResponseTemplate('widgets/video_listing.html', context=context, request=request)
 
 @bfg_view(name='video_widget')
-def video_widget(context, request):
+def video_widget(context, request, default_video='intro'):
     gsm = getGlobalSiteManager()
     videos = gsm.getUtility(IVideoContainer)
-    video = videos.get(context.default_video, 'intro')
+    try:
+        video = videos.get(context.default_video, default_video)
+    except:
+        video = videos.get(default_video)
     return ResponseTemplate('widgets/video.html', context=context, request=request, video=video)
 
 
