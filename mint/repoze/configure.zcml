@@ -3,6 +3,11 @@
   <!-- this must be included for the view declarations to work -->
   <include package="repoze.bfg.includes" />
   
+  <utility 
+    provides="repoze.bfg.interfaces.INotFoundAppFactory"
+    component="mint.repoze.run.not_found"
+  />
+
   <utility
     provides="repoze.bfg.interfaces.ISecurityPolicy"
     factory="repoze.bfg.security.RepozeWhoIdentityACLSecurityPolicy"

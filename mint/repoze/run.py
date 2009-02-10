@@ -63,7 +63,6 @@ class MintApp:
     
     def connect_routes(self, root):
         root.connect('/tags/:tag', controller='tag')
-        root.connect('/:video_name', controller='video_redirect', conditions=dict(function=is_valid_video))
         return root
     
     @property
@@ -89,4 +88,25 @@ def makeapp(global_config, **kw):
         True
     """
     return MintApp(**kw)
+
+
+from webob import Response
+from webob.exc import HTTPNotFound, HTTPMovedPermanently
+
+from mint.repoze.root import utility_finder
+
+class not_found(object):
+    def __call__(self, environ, start_response):
+        root = environ['webob.adhoc_attrs']['root']
+        path = environ['PATH_INFO'].lstrip('/').split('/')
+        res = HTTPNotFound()
+        if len(path) == 1:
+            path = path[0]
+            # we should have a look to see if we want to forward to a resource
+            for util in utility_finder.utilities():
+                utility = utility_finder(root, util).keys()
+                if path in utility:
+                    res = HTTPMovedPermanently(location = '/%s/%s' % (util, path))
+        return res(environ, start_response)
+    
 

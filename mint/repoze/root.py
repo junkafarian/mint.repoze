@@ -27,6 +27,8 @@ class PersistentUtilityFinder(object):
         else:
             raise TypeError('`path` must be iterable')
     
+    def utilities(self):
+        return self._utilities.keys()
 
 global utility_finder
 utility_finder = PersistentUtilityFinder()

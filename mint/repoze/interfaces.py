@@ -8,6 +8,9 @@ class IUtilityFinder(Interface):
     def register_utility(name, path):
         """registers the path of a utility `path` against a unique id `name`"""
     
+    def utilities():
+        """returns a list of utility ids"""
+    
 
 class IVideo(Interface):
     

@@ -173,6 +173,13 @@ def add_video_action(context, request):
 def view_users(context,request):
     return ResponseTemplate('pages/view_users.html', context=context)
 
+from repoze.bfg.interfaces import INotFoundAppFactory
+from repoze.bfg.wsgi import NotFound
+@bfg_view(for_=NotFound)
+def not_found(context,request):
+    print 'i`m here'
+    return Response('i`m here')
+
 
 ## /static/ 
 
