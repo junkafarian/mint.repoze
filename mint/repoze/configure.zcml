@@ -3,11 +3,6 @@
   <!-- this must be included for the view declarations to work -->
   <include package="repoze.bfg.includes" />
   
-  <subscriber
-    for="repoze.bfg.interfaces.IWSGIApplicationCreatedEvent"
-    handler=".subscribers.registerUtilities"
-  />
-  
   <utility
     provides="repoze.bfg.interfaces.ISecurityPolicy"
     factory="repoze.bfg.security.RepozeWhoIdentityACLSecurityPolicy"

@@ -1,6 +1,14 @@
 from zope.interface import Interface
 from zope.schema import TextLine, Text, List, Dict, Int
 
+class IUtilityFinder(Interface):
+    def __call__(context, utility):
+        """requires a location aware context and registered utility id. Returns the utility"""
+    
+    def register_utility(name, path):
+        """registers the path of a utility `path` against a unique id `name`"""
+    
+
 class IVideo(Interface):
     
     name = TextLine(title=u'Video Name')
