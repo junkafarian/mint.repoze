@@ -2,10 +2,10 @@ from webob import Response
 from webob.exc import HTTPNotFound, HTTPMovedPermanently, HTTPUnauthorized
 from jinja2 import Environment, PackageLoader
 from repoze.bfg.view import bfg_view, render_view
-from repoze.bfg.interfaces import IGETRequest, IPOSTRequest, IRequest
+from repoze.bfg.interfaces import IGETRequest, IPOSTRequest, IRequest, IRootFactory
 from zope.component import getUtility, getGlobalSiteManager
 
-from mint.repoze.root import Root
+from mint.repoze.root import Root, utility_finder
 from mint.repoze.models import Video
 from mint.repoze.interfaces import IVideo, IVideoContainer, IUserContainer
 
@@ -89,8 +89,7 @@ def video_listing_widget(context, request):
 
 @bfg_view(name='video_widget')
 def video_widget(context, request, default_video='intro'):
-    gsm = getGlobalSiteManager()
-    videos = gsm.getUtility(IVideoContainer)
+    videos = utility_finder(context, 'videos')
     try:
         video = videos.get(context.default_video, default_video)
     except:
@@ -116,21 +115,19 @@ def set_default_video(context, request):
 
 @bfg_view(name='set_default_video.html', for_=Root, request_type=IGETRequest, permission='edit')
 def set_default_video_form(context, request):
-    gsm = getGlobalSiteManager()
-    videos = gsm.getUtility(IVideoContainer)
+    videos = utility_finder(context, 'videos')
     return ResponseTemplate('pages/set_default_video.html', context=context, message='Please select the video you would like to play on the home page', videos=videos.values())
 
 @bfg_view(name='set_default_video.html', for_=Root, request_type=IPOSTRequest, permission='edit')
 def set_default_video_action(context, request):
     form = request.POST
     video = form.get('video.name')
-    gsm = getGlobalSiteManager()
     if not video:
-        return ResponseTemplate('pages/set_default_video.html', context=context, message='Please select a video', videos=gsm.getUtility(IVideoContainer).values())
+        return ResponseTemplate('pages/set_default_video.html', context=context, message='Please select a video', videos=utility_finder(context, 'videos').values())
     context.default_video = video
     import transaction
     transaction.commit()
-    return ResponseTemplate('pages/set_default_video.html', context=context, message='Default video set to %s' % video, videos=gsm.getUtility(IVideoContainer).values())
+    return ResponseTemplate('pages/set_default_video.html', context=context, message='Default video set to %s' % video, videos=utility_finder(context, 'videos').values())
 
 
 @bfg_view(name='video_redirect')
@@ -145,13 +142,8 @@ def video(context, request):
 @bfg_view(name='tag')
 @with_widgets('auth_widget')
 def tag(context, request):
-    #gsm = getGlobalSiteManager()
-    #videos = gsm.getUtility(IVideoContainer).get_videos_by_tag(context.tag)
-    from mint.repoze.root import ZODBInit
-    from mint.repoze.root import PersistentApplicationFinder
-    init = ZODBInit('test_mint')
-    get_root = PersistentApplicationFinder('zeo://localhost:8100/', init)
-    videos = get_root(request.environ)['videos']
+    p_root = getUtility(IRootFactory).get_root(request.environ)
+    videos = utility_finder(p_root, 'videos')
     videos = [render_view(video,request,'video_listing_widget') for video in videos.values()]
     return ResponseTemplate('pages/tag.html', context=context, videos=videos)
 
@@ -180,6 +172,13 @@ def add_video_action(context, request):
 @bfg_view(name='index.html', for_=IUserContainer)
 def view_users(context,request):
     return ResponseTemplate('pages/view_users.html', context=context)
+
+from repoze.bfg.interfaces import INotFoundAppFactory
+from repoze.bfg.wsgi import NotFound
+@bfg_view(for_=NotFound)
+def not_found(context,request):
+    print 'i`m here'
+    return Response('i`m here')
 
 
 ## /static/ 

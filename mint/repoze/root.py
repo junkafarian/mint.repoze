@@ -7,6 +7,32 @@ import logging
 
 log = logging.getLogger('mint.repoze.root')
 
+from repoze.bfg.traversal import find_root, find_model
+from mint.repoze.interfaces import IUtilityFinder
+
+class PersistentUtilityFinder(object):
+    
+    implements(IUtilityFinder)
+    
+    _utilities = {}
+    
+    def __call__(self, context, utility_name):
+        if utility_name not in self._utilities:
+            raise KeyError('`%s` is not a registered utility' % utility_name)
+        return find_model(context, self._utilities[utility_name])
+    
+    def register_utility(self, name, path):
+        if isinstance(path, tuple) or isinstance(path, list):
+            self._utilities[name] = path
+        else:
+            raise TypeError('`path` must be iterable')
+    
+    def utilities(self):
+        return self._utilities.keys()
+
+global utility_finder
+utility_finder = PersistentUtilityFinder()
+
 class Root(PersistentMapping):
     implements(ILocation)
     
@@ -43,6 +69,8 @@ def init_zodb_root(zodb_root, base):
         zodb_root[base] = mint_root
         import transaction
         transaction.commit()
+    utility_finder.register_utility('videos', ('videos',))
+    utility_finder.register_utility('users', ('users',))
     return zodb_root[base]
 
 def init_test_root(zodb_root, base):
@@ -58,6 +86,8 @@ def init_test_root(zodb_root, base):
         zodb_root[base] = mint_root
         import transaction
         transaction.commit()
+    utility_finder.register_utility('videos', ('videos',))
+    utility_finder.register_utility('users', ('users',))
     return zodb_root[base]
 
 def reset_root(zodb_root, base):
@@ -112,3 +142,7 @@ class PersistentApplicationFinder:
         environ['repoze.zodbconn.closer'] = Cleanup(conn.close)
         return app
     
+
+
+
+

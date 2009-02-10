@@ -152,14 +152,13 @@ class VideoContainer(PersistentMapping):
     
     def get_videos_by_tag(self, tag):
         """ Returns a list of video objects with the given tag
-            >>> from mint.repoze.models import VideoContainer
-            >>> from mint.repoze.test.data import video_data
-            >>> vids = VideoContainer(*video_data)
-            >>> vids.get_videos_by_tag('feature') # doctest: +ELLIPSIS
+            >>> from mint.repoze.test.data import video_container
+            >>> video_container.get_videos_by_tag('feature') # doctest: +ELLIPSIS
             [<Video name=...]
         """
         return [video for video in self.data.values() if tag in video.tags]
     
+
 
 class Advert(Persistent):
     """ A convenience class for storing information related to a single advert
@@ -198,6 +197,7 @@ class AdSpace(Persistent):
         >>> banner = AdSpace(uid=u'main_banner', height=60, width=468, allowed_formats=(u'img', u'swf'), adverts=adverts)
         >>> IAdSpace.providedBy(banner)
         True
+        >>> 
     """
     implements(IAdSpace)
     
@@ -211,40 +211,51 @@ class AdSpace(Persistent):
             def __setitem__(self,key,value):
                 if not IAdvert.providedBy(value):
                     raise ValueError('values must implement IAdvert')
+                assert value.height < height
+                assert value.width < width
                 super(Adverts,self).__setitem__(key,value)
             
             def append(self,value):
                 if not IAdvert.providedBy(value):
                     raise ValueError('values must implement IAdvert')
+                if value.height > height:
+                    raise ValueError('Advert height must be less than the AdSpace (got %s < %s)' % (value.width, width))
+                if value.width > width:
+                    raise ValueError('Advert width must be less than the AdSpace (got %s < %s)' % (value.width, width))
                 super(Adverts,self).append(value)
         
         self.adverts = Adverts(adverts)
-        # self.adverts.__setitem__ = self.__setitem__
     
     def __setitem__(self, key, value):
+        self.adverts[key] = value
+    
+    def append(self, key):
         """ Ensures items added to the adverts implement IAdvert
             
-            >>> from mint.repoze.models import AdSpace
+            >>> from mint.repoze.models import AdSpace, Advert
             >>> from mint.repoze.interfaces import IAdvert
             >>> from zope.interface import implements
             >>> banner = AdSpace(uid=u'main_banner', height=60, width=468)
-            >>> class ExampleAdvert(object):
-            ...     implements(IAdvert)
-            >>> banner.append(ExampleAdvert())
+            >>> ad = Advert(uid=u'largeblue', title=u'largeblue productions ltd.', content=u'', content_type=u'img',
+            ...             height=60, width=468, link=u'http://largeblue.com/', extra_html=u'')
+            >>> banner.append(ad)
             >>> banner.append(object()) # doctest: +ELLIPSIS
             Traceback (most recent call last):
             ...
             ValueError: values must implement IAdvert
+            >>> ad.height = 61
+            >>> banner.append(ad) # doctest: +ELLIPSIS
+            Traceback (most recent call last):
+            ...
+            ValueError...
             
         """
-        self.adverts[key] = value
-    
-    def append(self, key):
         self.adverts.append(key)
     
     def __getitem__(self, key):
         return self.adverts[key]
     
+
 
 class User(Persistent):
     """ A simple object for a User
