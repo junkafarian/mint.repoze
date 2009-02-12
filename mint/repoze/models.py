@@ -1,4 +1,7 @@
-from zope.interface import implements
+from shutil import copyfileobj
+from os import makedirs
+from os.path import abspath, join
+from zope.interface import implements, Interface
 from repoze.bfg.security import Everyone, Allow, Deny
 from repoze.bfg.interfaces import ILocation
 
@@ -10,6 +13,28 @@ from persistent.mapping import PersistentMapping
 from persistent.dict import PersistentDict
 
 import logging
+
+class AssertingList(list):
+    """ A convenience class to assert added objects provide a specified interface
+    """
+    def __init__(self, interface, vals=[]):
+        if not Interface.providedBy(interface):
+            raise TypeError('Must specify an interface to assert against')
+        self.interface = interface
+        for val in vals:
+            self.append(val)
+    
+    def __setitem__(self,key,value):
+        if not self.interface.providedBy(value):
+            raise ValueError('values must implement %s' % self.interface)
+        super(AssertingList,self).__setitem__(key,value)
+    
+    def append(self,value):
+        if not self.interface.providedBy(value):
+            raise ValueError('values must implement %s' % self.interface)
+        super(AssertingList,self).append(value)
+    
+
 
 class Video(Persistent):
     """ A simple Video object
@@ -55,8 +80,6 @@ class Video(Persistent):
         self.description = description
         self.tags = tags
         # save file and keep reference
-        from os.path import join
-        from os import makedirs
         video_dir = encode_dir
         self.dirname = join(video_dir, self.__name__)
         try:
@@ -67,8 +90,6 @@ class Video(Persistent):
             self.encodes[k] = self.save_encode(v,k)
     
     def save_encode(self, stream, encode='mp4', dst=None, buffer_size=16384):
-        from shutil import copyfileobj
-        from os.path import abspath, join
         if dst is None:
             dst = join(self.dirname, '%s.%s' % (self.__name__, encode))
         if not isinstance(dst, basestring):
@@ -173,6 +194,9 @@ class Advert(Persistent):
     """
     implements(IAdvert)
     
+    __name__ = __parent__ = None
+    dirname = 'var/banners/'
+    
     def __init__(self, uid, title, content, content_type, height=None, width=None, link=None, extra_html=None):
         self.__name__ = uid
         self.title = title
@@ -185,7 +209,26 @@ class Advert(Persistent):
         self.width = width
         self.link = link
         self.extra_html = extra_html
+        try:
+            self.dirname = self.__parent__.dirname
+        except:
+            pass
     
+    def save_file(self, stream, format='png', buffer_size=16384):
+        if dst is None:
+            dst = join(self.dirname, '%s.%s' % (self.__name__, format))
+        dst = abspath(self.dirname)
+        dst_file = file(dst, 'wb')
+        try:
+            copyfileobj(stream, dst_file, buffer_size)
+        except:
+            dst_file.close()
+            return None
+        else:
+            dst_file.close()
+            return dst
+    
+
 
 class AdSpace(Persistent):
     """ Objects used for online advertising space.
@@ -201,30 +244,16 @@ class AdSpace(Persistent):
     """
     implements(IAdSpace)
     
-    def __init__(self, uid, height, width, allowed_formats=(u'img', u'swf'), adverts=[]):
+    dirname = 'var/banners/'
+    
+    def __init__(self, uid, height, width, allowed_formats=(u'img', u'swf'), adverts=[], dirname=None):
         self.__name__ = uid
         self.height = height
         self.width = width
         self.allowed_formats = allowed_formats
-        
-        class Adverts(list):
-            def __setitem__(self,key,value):
-                if not IAdvert.providedBy(value):
-                    raise ValueError('values must implement IAdvert')
-                assert value.height < height
-                assert value.width < width
-                super(Adverts,self).__setitem__(key,value)
-            
-            def append(self,value):
-                if not IAdvert.providedBy(value):
-                    raise ValueError('values must implement IAdvert')
-                if value.height > height:
-                    raise ValueError('Advert height must be less than the AdSpace (got %s < %s)' % (value.width, width))
-                if value.width > width:
-                    raise ValueError('Advert width must be less than the AdSpace (got %s < %s)' % (value.width, width))
-                super(Adverts,self).append(value)
-        
-        self.adverts = Adverts(adverts)
+        self.adverts = AssertingList(IAdvert, adverts)
+        if not dirname:
+            self.dirname += self.__name__ + '/'
     
     def __setitem__(self, key, value):
         self.adverts[key] = value
@@ -242,12 +271,14 @@ class AdSpace(Persistent):
             >>> banner.append(object()) # doctest: +ELLIPSIS
             Traceback (most recent call last):
             ...
-            ValueError: values must implement IAdvert
-            >>> ad.height = 61
-            >>> banner.append(ad) # doctest: +ELLIPSIS
-            Traceback (most recent call last):
-            ...
-            ValueError...
+            ValueError: values must implement <InterfaceClass mint.repoze.interfaces.IAdvert>
+            
+            
+            #>>> ad.height = 61
+            #>>> banner.append(ad) # doctest: +ELLIPSIS
+            #Traceback (most recent call last):
+            #...
+            #ValueError...
             
         """
         self.adverts.append(key)
