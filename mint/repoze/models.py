@@ -16,6 +16,12 @@ import logging
 
 class AssertingList(list):
     """ A convenience class to assert added objects provide a specified interface
+        
+        >>> AssertingList('this is not an interface') # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        TypeError: Must specify an interface to assert against
+        
     """
     def __init__(self, interface, vals=[]):
         if not Interface.providedBy(interface):
