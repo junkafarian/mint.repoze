@@ -61,16 +61,19 @@ def init_zodb_root(zodb_root, base):
         log.debug('initialising real root in db')
         from mint.repoze.test.data import video_container, users
         from mint.repoze.models import UserContainer, User
-        from mint.repoze.models import VideoContainer, Video
+        from mint.repoze.models import VideoContainer
+        from mint.repoze.models import AdSpaceContainer
         mint_root = Root()
         mint_root['videos'] = VideoContainer()
         mint_root['users'] = UserContainer()
         mint_root['users'].add_user(**users['admin'])
+        mint_root['banners'] = AdSpaceContainer()
         zodb_root[base] = mint_root
         import transaction
         transaction.commit()
     utility_finder.register_utility('videos', ('videos',))
     utility_finder.register_utility('users', ('users',))
+    utility_finder.register_utility('banners', ('banners',))
     return zodb_root[base]
 
 def init_test_root(zodb_root, base):
@@ -78,16 +81,19 @@ def init_test_root(zodb_root, base):
         log.debug('initialising test root in db')
         from mint.repoze.test.data import video_container, users
         from mint.repoze.models import UserContainer, User
+        from mint.repoze.models import AdSpaceContainer
         mint_root = Root()
         mint_root['videos'] = video_container
         mint_root['users'] = UserContainer()
         for user in users.values():
             mint_root['users'].add_user(**user)
+        mint_root['banners'] = AdSpaceContainer()
         zodb_root[base] = mint_root
         import transaction
         transaction.commit()
     utility_finder.register_utility('videos', ('videos',))
     utility_finder.register_utility('users', ('users',))
+    utility_finder.register_utility('banners', ('banners',))
     return zodb_root[base]
 
 def reset_root(zodb_root, base):

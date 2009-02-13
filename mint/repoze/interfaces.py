@@ -50,6 +50,10 @@ class IAdSpace(Interface):
     allowed_formats = List(title=u'Allowed Formats', value_type=TextLine())
     adverts = List(title=u'Adverts')
 
+class IAdSpaceContainer(Interface):
+    
+    __name__ = TextLine(title=u'ID of the Ad space container')
+
 class IUser(Interface):
     id = TextLine(title=u"User ID")
     email = TextLine(title=u"User email address")

@@ -7,7 +7,7 @@ from zope.component import getUtility, getGlobalSiteManager
 
 from mint.repoze.root import Root, utility_finder
 from mint.repoze.models import Video
-from mint.repoze.interfaces import IVideo, IVideoContainer, IUserContainer
+from mint.repoze.interfaces import IVideo, IVideoContainer, IUserContainer, IAdSpaceContainer, IAdSpace, IAdvert
 
 
 ## Utils
@@ -173,12 +173,18 @@ def add_video_action(context, request):
 def view_users(context,request):
     return ResponseTemplate('pages/view_users.html', context=context)
 
-from repoze.bfg.interfaces import INotFoundAppFactory
-from repoze.bfg.wsgi import NotFound
-@bfg_view(for_=NotFound)
-def not_found(context,request):
-    print 'i`m here'
-    return Response('i`m here')
+@bfg_view(name='add.html', for_=IAdSpaceContainer)
+def add_adspace(context, request):
+    pass
+
+@bfg_view(name='edit.html', for_=IAdSpaceContainer)
+def edit_adspaces(context, request):
+    pass
+
+@bfg_view(name='edit.html', for_=IAdSpace)
+def edit_adspace(context,request):
+    return ResponseTemplate('pages/edit_adspace.html', context=context)
+
 
 
 ## /static/ 

@@ -1,0 +1,11 @@
+{% extends "layout/master.html" %}
+{% block title %}videos | Edit Advert{% endblock %}
+{% block body %}
+  <form action="" method="post" enctype="multipart/form-data">
+    <div><label for="video.name">Name</label><input name="video.name" type="text" /></div>
+    <div><label for="video.description">Description</label><textarea name="video.description"></textarea></div>
+    <div><label for="video.tags">Tags</label><input name="video.tags" type="text" /></div>
+    <div><label for="video.file">Video File</label><input name="video.file" type="file" /></div>
+    <input type="submit" />
+  </form>
+{% endblock %}

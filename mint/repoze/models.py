@@ -2,11 +2,12 @@ from shutil import copyfileobj
 from os import makedirs
 from os.path import abspath, join
 from zope.interface import implements, Interface
+from zope.interface.interfaces import IInterface
 from repoze.bfg.security import Everyone, Allow, Deny
 from repoze.bfg.interfaces import ILocation
 
 from mint.repoze.interfaces import IVideo, IVideoContainer
-from mint.repoze.interfaces import IAdvert, IAdSpace
+from mint.repoze.interfaces import IAdvert, IAdSpace, IAdSpaceContainer
 from mint.repoze.interfaces import IUser, IUserContainer
 from persistent import Persistent
 from persistent.mapping import PersistentMapping
@@ -17,14 +18,21 @@ import logging
 class AssertingList(list):
     """ A convenience class to assert added objects provide a specified interface
         
-        >>> AssertingList('this is not an interface') # doctest: +ELLIPSIS
+        >>> li = AssertingList('this is not an interface') # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         TypeError: Must specify an interface to assert against
+        >>> from zope.interface import Interface, implements
+        >>> class ExInterface(Interface):
+        ...     pass
+        >>> li = AssertingList(ExInterface)
+        >>> class MockOb(object):
+        ...     implements(ExInterface)
+        >>> li.append(MockOb())
         
     """
     def __init__(self, interface, vals=[]):
-        if not Interface.providedBy(interface):
+        if not IInterface.providedBy(interface):
             raise TypeError('Must specify an interface to assert against')
         self.interface = interface
         for val in vals:
@@ -198,6 +206,11 @@ class Advert(Persistent):
         True
         
     """
+    __acl__ = [
+            (Allow, Everyone, 'view'),
+            (Allow, 'admin', 'edit'),
+            ]
+    
     implements(IAdvert)
     
     __name__ = __parent__ = None
@@ -248,6 +261,12 @@ class AdSpace(Persistent):
         True
         >>> 
     """
+    __acl__ = [
+            (Allow, Everyone, 'view'),
+            (Allow, 'admin', 'add'),
+            (Allow, 'admin', 'edit'),
+            ]
+    
     implements(IAdSpace)
     
     dirname = 'var/banners/'
@@ -293,6 +312,24 @@ class AdSpace(Persistent):
         return self.adverts[key]
     
 
+
+class AdSpaceContainer(PersistentMapping):
+    """ A simple container for storing advert and banner objects
+        
+        >>> from mint.repoze.interfaces import IAdSpaceContainer
+        >>> from mint.repoze.models import AdSpaceContainer
+        >>> ob = AdSpaceContainer()
+        >>> IAdSpaceContainer.providedBy(ob)
+        True
+    """
+    __acl__ = [
+            (Allow, Everyone, 'view'),
+            (Allow, 'admin', 'add'),
+            (Allow, 'admin', 'edit'),
+            ]
+    
+    implements(IAdSpaceContainer)
+    
 
 class User(Persistent):
     """ A simple object for a User
