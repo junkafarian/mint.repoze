@@ -127,8 +127,27 @@ def test_intro_video_page():
 #     )
 #     print u'who the hell called their video `flibble`'
 # 
+def test_intro_video(res=None):
+    """`/videos/intro` video exists and has tags"""
+    if not res:
+        res = app.get('/videos/intro')
+    assert_true(
+     'div class="videoplayer" id="intro"' in res.body,
+     "Intro video should be in %s" % res.body
+    )
+    assert_true(
+     'tags' in res.body,
+     "Tags div should be there"
+    )
+    
+    for tag in ['feature']:
+        assert_true(
+            tag in res.body,
+            "%s tag should be in body" % tag
+        )
+
 def test_oil_on_ice_video(res=None):
-    """`/oil_on_ice` video exists and has tags"""
+    """`/videos/oil_on_ice` video exists and has tags"""
     if not res:
         res = app.get('/videos/oil_on_ice')
     assert_true(
@@ -174,6 +193,30 @@ def test_tag_page(res=None):
     
     res = res.click('Oil on Ice')
     test_oil_on_ice_video(res)
+
+def test_dynamic_channel_page(res=None):
+    """check contents of a channel page | check links on page return real video pages"""
+    if res == None:
+        res = app.get('/channels/feature')
+    assert_true(
+        '200' in res.status,
+        u'Server should return OK'
+    )
+    print res
+    assert_true(
+        'feature' in res.body,
+        u'Channel title should be in body'
+    )
+    assert_true(
+        'intro' in res.body,
+        u'intro should be a featured video'
+    )
+    
+    res = res.click('Intro')
+    test_intro_video(res)
+
+def test_persistent_channel_page(res=None):
+    pass
 
 def test_reachable_static():
     """Static files are accessible at `/static/`"""

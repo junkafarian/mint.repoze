@@ -4,10 +4,12 @@ from jinja2 import Environment, PackageLoader
 from repoze.bfg.view import bfg_view, render_view
 from repoze.bfg.interfaces import IGETRequest, IPOSTRequest, IRequest, IRootFactory
 from zope.component import getUtility, getGlobalSiteManager
+import transaction
+import logging
 
 from mint.repoze.root import Root, utility_finder
-from mint.repoze.models import Video
-from mint.repoze.interfaces import IVideo, IVideoContainer, IUserContainer, IAdSpaceContainer, IAdSpace, IAdvert
+from mint.repoze.models import Video, Channel
+from mint.repoze.interfaces import IVideo, IVideoContainer, IChannel, IChannelContainer, IUserContainer, IAdSpaceContainer, IAdSpace, IAdvert
 
 
 ## Utils
@@ -147,6 +149,38 @@ def tag(context, request):
     videos = [render_view(video,request,'video_listing_widget') for video in videos.values()]
     return ResponseTemplate('pages/tag.html', context=context, videos=videos)
 
+@bfg_view(for_=IChannel, permission='view')
+@with_widgets('auth_widget')
+def channel(context, request):
+    p_root = getUtility(IRootFactory).get_root(request.environ)
+    videos = utility_finder(p_root, 'videos')
+    videos = [render_view(video,request,'video_listing_widget') for video in context.get_listings(videos)]
+    return ResponseTemplate('pages/channel.html', context=context, videos=videos)
+
+@bfg_view(name='edit.html', for_=IChannel, request_type=IGETRequest, permission='edit')
+def edit_channel_form(context, request):
+    #p_root = getUtility(IRootFactory).get_root(request.environ)
+    #videos = utility_finder(p_root, 'videos')
+    #videos = [render_view(video,request,'video_listing_widget') for video in context.get_listings(videos)]
+    return ResponseTemplate('pages/edit_channel.html', context=context, message='please update the information in the form below')
+
+@bfg_view(name='edit.html', for_=IChannel, request_type=IPOSTRequest, permission='edit')
+def edit_channel_action(context, request):
+    form = request.POST
+    name = context.__name__
+    p_root = getUtility(IRootFactory).get_root(request.environ)
+    channels = utility_finder(p_root, 'channels')
+    if not channels.is_stored(name):
+        logging.info(context)
+        channels[name] = Channel(name)
+        transaction.commit()
+        context = channels[name]
+    
+    for att in ['title', 'description']:
+        setattr(context, att, form.get('channel.%s' % att))
+
+    transaction.commit()
+    return ResponseTemplate('pages/edit_channel.html', context=context, message='Channel updated successfully')
 
 @bfg_view(name='add_video.html', for_=IVideoContainer, request_type=IGETRequest, permission='edit')
 def add_video_form(context, request):
@@ -177,19 +211,15 @@ def view_users(context,request):
 def add_adspace(context, request):
     form = request.POST
     name = form.get('banner.name')
-    height = form.get('banner.height')
     width = form.get('banner.width')
-    tags = form.get('video.tags')
-    if not (name and description and tags):
+    height = form.get('banner.height')
+    if not (name and width and height):
         return ResponseTemplate('pages/add_video.html', message='Missing fields')
-    encodes = {}
-    f = form.get('video.file')
-    if not isinstance(f, basestring) and f is not None:
-        encodes['mp4'] = f.file
-    context.add_video(uid, height, width, allowed_formats=(u'img', u'swf'), adverts=[], dirname=None)
+    adverts = {}
+    #context.add_advert(uid, height, width, allowed_formats=(u'img', u'swf'), adverts=[], dirname=None)
     import transaction
     transaction.commit()
-    return ResponseTemplate('pages/add_video.html', message='Video successfully added')
+    return ResponseTemplate('pages/add_adspace.html', message='Banner successfully added')
 
 @bfg_view(name='edit.html', for_=IAdSpaceContainer)
 def edit_adspaces(context, request):

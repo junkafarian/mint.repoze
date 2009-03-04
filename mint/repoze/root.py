@@ -10,6 +10,12 @@ log = logging.getLogger('mint.repoze.root')
 from repoze.bfg.traversal import find_root, find_model
 from mint.repoze.interfaces import IUtilityFinder
 
+from mint.repoze.test.data import video_container, users
+from mint.repoze.models import UserContainer, User
+from mint.repoze.models import VideoContainer
+from mint.repoze.models import ChannelContainer
+from mint.repoze.models import AdSpaceContainer
+
 class PersistentUtilityFinder(object):
     
     implements(IUtilityFinder)
@@ -59,41 +65,38 @@ class Root(PersistentMapping):
 def init_zodb_root(zodb_root, base):
     if not base in zodb_root:
         log.debug('initialising real root in db')
-        from mint.repoze.test.data import video_container, users
-        from mint.repoze.models import UserContainer, User
-        from mint.repoze.models import VideoContainer
-        from mint.repoze.models import AdSpaceContainer
         mint_root = Root()
         mint_root['videos'] = VideoContainer()
+        mint_root['channels'] = ChannelContainer()
+        mint_root['banners'] = AdSpaceContainer()
         mint_root['users'] = UserContainer()
         mint_root['users'].add_user(**users['admin'])
-        mint_root['banners'] = AdSpaceContainer()
         zodb_root[base] = mint_root
         import transaction
         transaction.commit()
     utility_finder.register_utility('videos', ('videos',))
-    utility_finder.register_utility('users', ('users',))
+    utility_finder.register_utility('channels', ('channels',))
     utility_finder.register_utility('banners', ('banners',))
+    utility_finder.register_utility('users', ('users',))
     return zodb_root[base]
 
 def init_test_root(zodb_root, base):
     if not base in zodb_root:
         log.debug('initialising test root in db')
-        from mint.repoze.test.data import video_container, users
-        from mint.repoze.models import UserContainer, User
-        from mint.repoze.models import AdSpaceContainer
         mint_root = Root()
         mint_root['videos'] = video_container
+        mint_root['channels'] = ChannelContainer()
+        mint_root['banners'] = AdSpaceContainer()
         mint_root['users'] = UserContainer()
         for user in users.values():
             mint_root['users'].add_user(**user)
-        mint_root['banners'] = AdSpaceContainer()
         zodb_root[base] = mint_root
         import transaction
         transaction.commit()
     utility_finder.register_utility('videos', ('videos',))
-    utility_finder.register_utility('users', ('users',))
+    utility_finder.register_utility('channels', ('channels',))
     utility_finder.register_utility('banners', ('banners',))
+    utility_finder.register_utility('users', ('users',))
     return zodb_root[base]
 
 def reset_root(zodb_root, base):
