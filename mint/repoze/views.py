@@ -175,11 +175,25 @@ def view_users(context,request):
 
 @bfg_view(name='add.html', for_=IAdSpaceContainer)
 def add_adspace(context, request):
-    pass
+    form = request.POST
+    name = form.get('banner.name')
+    height = form.get('banner.height')
+    width = form.get('banner.width')
+    tags = form.get('video.tags')
+    if not (name and description and tags):
+        return ResponseTemplate('pages/add_video.html', message='Missing fields')
+    encodes = {}
+    f = form.get('video.file')
+    if not isinstance(f, basestring) and f is not None:
+        encodes['mp4'] = f.file
+    context.add_video(uid, height, width, allowed_formats=(u'img', u'swf'), adverts=[], dirname=None)
+    import transaction
+    transaction.commit()
+    return ResponseTemplate('pages/add_video.html', message='Video successfully added')
 
 @bfg_view(name='edit.html', for_=IAdSpaceContainer)
 def edit_adspaces(context, request):
-    pass
+    return ResponseTemplate('pages/edit_adspaces.html', context=context)
 
 @bfg_view(name='edit.html', for_=IAdSpace)
 def edit_adspace(context,request):
