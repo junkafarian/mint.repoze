@@ -7,6 +7,7 @@ from repoze.bfg.security import Everyone, Allow, Deny
 from repoze.bfg.interfaces import ILocation
 
 from mint.repoze.interfaces import IVideo, IVideoContainer
+from mint.repoze.interfaces import IChannel, IChannelContainer
 from mint.repoze.interfaces import IAdvert, IAdSpace, IAdSpaceContainer
 from mint.repoze.interfaces import IUser, IUserContainer
 from persistent import Persistent
@@ -47,6 +48,27 @@ class AssertingList(list):
         if not self.interface.providedBy(value):
             raise ValueError('values must implement %s' % self.interface)
         super(AssertingList,self).append(value)
+    
+
+class BaseContainer(PersistentMapping):
+    
+    def __init__(self, *args, **kwargs):
+        self.data = PersistentDict()
+    
+    def __getitem__(self, key):
+        return self.data.__getitem__(key)
+    
+    def __setitem__(self, key, value):
+        return self.data.__setitem__(key, value)
+    
+    def items(self):
+        return self.data.items()
+    
+    def keys(self):
+        return self.data.keys()
+    
+    def values(self):
+        return self.data.values()
     
 
 
@@ -123,7 +145,7 @@ class Video(Persistent):
         return u'<Video name=%s>' % self.name
     
 
-class VideoContainer(PersistentMapping):
+class VideoContainer(BaseContainer):
     """ A simple container for Video objects
         
         >>> from mint.repoze.interfaces import IVideoContainer
@@ -151,26 +173,11 @@ class VideoContainer(PersistentMapping):
     encode_dir = 'var/videos/'
     
     def __init__(self, *args, **kwargs):
-        self.data = PersistentDict()
+        super(VideoContainer, self).__init__()
         for data in args:
             self.add_video(*data)
         for v in kwargs.values():
             pass
-    
-    def __getitem__(self, key):
-        return self.data.__getitem__(key)
-    
-    def __setitem__(self, key, value):
-        return self.data.__setitem__(key, value)
-    
-    def items(self):
-        return self.data.items()
-    
-    def keys(self):
-        return self.data.keys()
-    
-    def values(self):
-        return self.data.values()
     
     def __repr__(self):
         return u'<VideoContainer object>'
@@ -193,6 +200,57 @@ class VideoContainer(PersistentMapping):
         """
         return [video for video in self.data.values() if tag in video.tags]
     
+
+
+class Channel(Persistent):
+    __acl__ = [
+        (Allow, Everyone, 'view'),
+        (Allow, 'admin', 'add'),
+        (Allow, 'admin', 'edit'),
+        ]
+
+    implements(IChannel)
+    
+    __name__ = __parent__ = None
+    title = u''
+    description = u''
+    default_video = u''
+
+    def __init__(self, name, title=u'', description=u'', default_video=u''):
+        self.__name__ = name.replace(' ', '').lower()
+        self.title, self.descrption, self.default_video = title, description, default_video
+
+    def get_listings(self, videos):
+        listings = [video for video in videos.values() if self.__name__ in video.tags]
+        return listings
+    
+    
+
+class ChannelContainer(BaseContainer):
+    __acl__ = [
+        (Allow, Everyone, 'view'),
+        (Allow, 'admin', 'add'),
+        (Allow, 'admin', 'edit'),
+        ]
+
+    implements(IChannelContainer)
+
+    __name__ = __parent__ = None
+
+    def __init__(self, *args, **kwargs):
+        super(ChannelContainer, self).__init__()
+    
+    def __getitem__(self, key):
+        try:
+            return super(ChannelContainer, self).__getitem__(key)
+        except KeyError: # return a dummy object
+            return Channel(key)
+
+    def is_stored(self, key):
+        if key in self.data:
+            return True
+        else:
+            return False
 
 
 class Advert(Persistent):

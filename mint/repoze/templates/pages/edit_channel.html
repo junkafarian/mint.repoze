@@ -1,0 +1,11 @@
+{% extends "layout/master.html" %}
+{% block title %}channels | {{ context.__name__ }} | Edit{% endblock %}
+{% block body %}
+  You are editing the {{ context.__name__ }} channel
+  {{ message }}
+  <form action="" method="post" enctype="multipart/form-data">
+    <div><label for="channel.title">Title</label><input name="channel.title" type="text" value="{{ context.title }}" /></div>
+    <div><label for="channel.description">Description</label><textarea name="channel.description">{{ context.description }}</textarea></div>
+    <input type="submit" />
+  </form>
+{% endblock %}

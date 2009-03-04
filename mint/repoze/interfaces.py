@@ -30,6 +30,21 @@ class IVideoContainer(Interface):
         """Return all contained Video objects which include `tag`"""
     
 
+class IChannel(Interface):
+    __name__ = TextLine(title=u'Channel ID')
+    title = TextLine(title=u'Channel Title')
+    description = Text(title=u'Channel Description')
+
+    def get_listings():
+        """Returns videos with the `Channel ID` in their tags"""
+
+
+class IChannelContainer(Interface):
+
+    def is_stored(key):
+        """Returns whether a channel is stored in the database as a boolean value"""
+    
+
 class IAdvert(Interface):
     
     __name__ = TextLine(title=u'ID of the advert')
