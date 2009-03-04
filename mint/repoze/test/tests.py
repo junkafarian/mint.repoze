@@ -194,7 +194,7 @@ def test_tag_page(res=None):
     res = res.click('Oil on Ice')
     test_oil_on_ice_video(res)
 
-def test_channel_page(res=None):
+def test_dynamic_channel_page(res=None):
     """check contents of a channel page | check links on page return real video pages"""
     if res == None:
         res = app.get('/channels/feature')
@@ -205,7 +205,7 @@ def test_channel_page(res=None):
     print res
     assert_true(
         'feature' in res.body,
-        u'correct tag should be in body'
+        u'Channel title should be in body'
     )
     assert_true(
         'intro' in res.body,
@@ -214,7 +214,9 @@ def test_channel_page(res=None):
     
     res = res.click('Intro')
     test_intro_video(res)
-    
+
+def test_persistent_channel_page(res=None):
+    pass
 
 def test_reachable_static():
     """Static files are accessible at `/static/`"""

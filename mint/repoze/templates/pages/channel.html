@@ -1,7 +1,7 @@
 {% extends "layout/master.html" %}
-{% block title %}tags | {{ context.title }}{% endblock %}
+{% block title %}tags | {{ context.__name__ }}{% endblock %}
 {% block body %}
-  <h1>{{ context.title }}</h1>
+  <h1>{{ context.__name__ }}</h1>
   {{ context.description }}
   {% for video in videos %}
     {{ video }}
