@@ -204,7 +204,7 @@ def test_dynamic_channel_page(res=None):
     )
     print res
     assert_true(
-        'feature' in res.body,
+        'feature'.title() in res.body, # same machinery as the dynamic channel renderer
         u'Channel title should be in body'
     )
     assert_true(

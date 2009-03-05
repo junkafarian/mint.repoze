@@ -155,7 +155,8 @@ def channel(context, request):
     p_root = getUtility(IRootFactory).get_root(request.environ)
     videos = utility_finder(p_root, 'videos')
     videos = [render_view(video,request,'video_listing_widget') for video in context.get_listings(videos)]
-    return ResponseTemplate('pages/channel.html', context=context, videos=videos)
+    title = context.title or context.__name__.title()
+    return ResponseTemplate('pages/channel.html', context=context, videos=videos, title=title)
 
 @bfg_view(name='edit.html', for_=IChannel, request_type=IGETRequest, permission='edit')
 def edit_channel_form(context, request):
