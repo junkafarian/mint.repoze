@@ -111,10 +111,6 @@ def index(context, request):
 def index_page(context, request):
     return ResponseTemplate('pages/index.html', context=context, request=request)
 
-@bfg_view(name="set_default_video.html", for_=Root, permission='edit')
-def set_default_video(context, request):
-    return ResponseTemplate('pages/set_default_video.html', context=context, request=request)
-
 @bfg_view(name='set_default_video.html', for_=Root, request_type=IGETRequest, permission='edit')
 def set_default_video_form(context, request):
     videos = utility_finder(context, 'videos')
@@ -141,21 +137,14 @@ def video_redirect(context, request):
 def video(context, request):
     return ResponseTemplate('pages/video.html', context=context)
 
-@bfg_view(name='tag')
-@with_widgets('auth_widget')
-def tag(context, request):
-    p_root = getUtility(IRootFactory).get_root(request.environ)
-    videos = utility_finder(p_root, 'videos')
-    videos = [render_view(video,request,'video_listing_widget') for video in videos.values()]
-    return ResponseTemplate('pages/tag.html', context=context, videos=videos)
-
 @bfg_view(for_=IChannel, permission='view')
 @with_widgets('auth_widget')
 def channel(context, request):
     p_root = getUtility(IRootFactory).get_root(request.environ)
     videos = utility_finder(p_root, 'videos')
     videos = [render_view(video,request,'video_listing_widget') for video in context.get_listings(videos)]
-    return ResponseTemplate('pages/channel.html', context=context, videos=videos)
+    title = context.title or context.__name__.title()
+    return ResponseTemplate('pages/channel.html', context=context, videos=videos, title=title)
 
 @bfg_view(name='edit.html', for_=IChannel, request_type=IGETRequest, permission='edit')
 def edit_channel_form(context, request):
@@ -178,7 +167,7 @@ def edit_channel_action(context, request):
     
     for att in ['title', 'description']:
         setattr(context, att, form.get('channel.%s' % att))
-
+    
     transaction.commit()
     return ResponseTemplate('pages/edit_channel.html', context=context, message='Channel updated successfully')
 
