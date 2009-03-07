@@ -1,4 +1,4 @@
-from nose.tools import assert_true, assert_equals, assert_raises, with_setup
+from nose.tools import assert_true, assert_false, assert_equals, assert_raises, with_setup
 from webtest import TestApp, AppError
 from mint.repoze.test.data import users
 
@@ -115,7 +115,7 @@ def test_intro_video_page():
         u'video should have a video player'
     )
     res = res.click('feature')
-    test_tag_page(res)
+    test_dynamic_channel_page(res, u'feature')
 
 # hmm?
 # def test_flibble_page_returns_404():
@@ -173,47 +173,33 @@ def test_legacy_video_redirect():
         u'response should be a 301 response, not %s' % res.status
     )
 
-def test_tag_page(res=None):
-    """check contents of a tag page | check links on page return real video pages"""
-    if res == None:
-        res = app.get('/tags/feature')
-    assert_true(
-        '200' in res.status,
-        u'Server should return OK'
-    )
-    print res
-    assert_true(
-        'feature' in res.body,
-        u'correct tag should be in body'
-    )
-    assert_true(
-        'intro' in res.body,
-        u'intro should be a featured video'
-    )
-    
-    res = res.click('Oil on Ice')
-    test_oil_on_ice_video(res)
-
-def test_dynamic_channel_page(res=None):
+def test_dynamic_channel_page(res=None, channel=None):
     """check contents of a channel page | check links on page return real video pages"""
-    if res == None:
+    if res == None and channel == None:
         res = app.get('/channels/feature')
+        channel = u'feature'
+    else:
+        assert_false(
+            res == None or channel == None,
+            u'When feeding this test parameters, both a result and a channel name must be defined'
+        )
     assert_true(
         '200' in res.status,
         u'Server should return OK'
     )
     print res
     assert_true(
-        'feature'.title() in res.body, # same machinery as the dynamic channel renderer
+        channel.title() in res.body, # same machinery as the dynamic channel renderer
         u'Channel title should be in body'
     )
-    assert_true(
-        'intro' in res.body,
-        u'intro should be a featured video'
-    )
-    
-    res = res.click('Intro')
-    test_intro_video(res)
+    if channel == 'feature':
+        assert_true(
+            'intro' in res.body,
+            u'intro should be a featured video'
+        )
+
+        res = res.click('Intro')
+        test_intro_video(res)
 
 def test_persistent_channel_page(res=None):
     pass
@@ -265,7 +251,7 @@ def test_add_video():
         u'new video not live'
     )
     
-    res = app.get('/tags/foo')
+    res = app.get('/channels/foo')
     assert_true(
         'testvid1' in res.body,
         u'video not searchable by tags'

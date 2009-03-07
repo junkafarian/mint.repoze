@@ -1,9 +1,9 @@
 {% extends "layout/master.html" %}
-{% block title %}videos | Edit Advert{% endblock %}
+{% block title %}Banners | Edit Adverts{% endblock %}
 {% block body %}
   <form action="" method="post" enctype="multipart/form-data">
     <div><label for="banner.name">Name</label><input name="banner.name" type="text" /></div>
-    <div><label for="banner.description">Description</label><textarea name="banner.description"></textarea></div>
+    <div><label>Dimensions</label><input name="banner.width" type="text" />x <input name="banner.height" type="text" /></div>
   <input type="submit" />
   </form>
 {% endblock %}

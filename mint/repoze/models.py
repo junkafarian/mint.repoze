@@ -271,9 +271,8 @@ class Advert(Persistent):
     implements(IAdvert)
     
     __name__ = __parent__ = None
-    dirname = 'var/banners/'
     
-    def __init__(self, uid, title, content, content_type, height=None, width=None, link=None, extra_html=None):
+    def __init__(self, uid, title, content, content_type, static_dir=u'var/banners/', height=None, width=None, link=None, extra_html=None):
         self.__name__ = uid
         self.title = title
         ##TODO: save file to filesystem
@@ -285,14 +284,17 @@ class Advert(Persistent):
         self.width = width
         self.link = link
         self.extra_html = extra_html
-        try:
-            self.dirname = self.__parent__.dirname
-        except:
-            pass
+        if static_dir:
+            self.static_dir = static_dir
+        else:
+            try:
+                self.static_dir = self.__parent__.static_dir
+            except:
+                self.static_dir = static_dir
     
-    def save_file(self, stream, format='png', buffer_size=16384):
+    def save_file(self, stream, ext='png', buffer_size=16384):
         if dst is None:
-            dst = join(self.dirname, '%s.%s' % (self.__name__, format))
+            dst = join(self.dirname, '%s.%s' % (self.__name__, ext))
         dst = abspath(self.dirname)
         dst_file = file(dst, 'wb')
         try:
@@ -326,16 +328,14 @@ class AdSpace(Persistent):
     
     implements(IAdSpace)
     
-    dirname = 'var/banners/'
-    
-    def __init__(self, uid, height, width, allowed_formats=(u'img', u'swf'), adverts=[], dirname=None):
+    def __init__(self, uid, height, width, allowed_formats=(u'img', u'swf'), adverts=[], static_dir=u'var/banners/'):
         self.__name__ = uid
         self.height = height
         self.width = width
         self.allowed_formats = allowed_formats
         self.adverts = AssertingList(IAdvert, adverts)
-        if not dirname:
-            self.dirname += self.__name__ + '/'
+        if not static_dir:
+            self.static_dir = static_dir
     
     def __setitem__(self, key, value):
         self.adverts[key] = value

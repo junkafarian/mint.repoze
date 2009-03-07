@@ -62,7 +62,7 @@ class MintApp:
         return root
     
     def connect_routes(self, root):
-        root.connect('/tags/:tag', controller='tag')
+        #root.connect('/contact.html', controller='contact.html')
         return root
     
     @property
