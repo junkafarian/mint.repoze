@@ -115,7 +115,7 @@ def test_intro_video_page():
         u'video should have a video player'
     )
     res = res.click('feature')
-    test_dynamic_channel_page(res, 'feature')
+    test_dynamic_channel_page(res, u'feature')
 
 # hmm?
 # def test_flibble_page_returns_404():
@@ -176,12 +176,12 @@ def test_legacy_video_redirect():
 def test_dynamic_channel_page(res=None, channel=None):
     """check contents of a channel page | check links on page return real video pages"""
     if res == None and channel == None:
-        channel = u'feature'
         res = app.get('/channels/feature')
+        channel = u'feature'
     else:
         assert_false(
             res == None or channel == None,
-            u'Both the webob.Response and channel name must be passed'
+            u'When feeding this test parameters, both a webob.Response and a channel name must be defined'
         )
     assert_true(
         '200' in res.status,
@@ -189,16 +189,17 @@ def test_dynamic_channel_page(res=None, channel=None):
     )
     print res
     assert_true(
-        channel.title() in res.body,
+        channel.title() in res.body, # same machinery as the dynamic channel renderer
         u'Channel title should be in body'
     )
-    assert_true(
-        'intro' in res.body,
-        u'intro should be a featured video'
-    )
-    
-    res = res.click('Intro')
-    test_intro_video(res)
+    if channel == 'feature':
+        assert_true(
+            'intro' in res.body,
+            u'intro should be a featured video'
+        )
+        
+        res = res.click('Intro')
+        test_intro_video(res)
 
 def test_persistent_channel_page():
     res = app.get('/channels/water')

@@ -101,9 +101,7 @@ class Video(Persistent):
     
     implements(IVideo,ILocation)
     
-    encodes = {}
-    
-    def __init__(self, uid, name, description, tags, encodes={}, encode_dir='var/videos/'):
+    def __init__(self, uid, name, description, tags, encodes={}, static_dir='var/videos/'):
         """ Receives encodes in the form:
                 encodes = {
                     'mp4': <FileStream>,
@@ -116,18 +114,18 @@ class Video(Persistent):
         self.description = description
         self.tags = tags
         # save file and keep reference
-        video_dir = encode_dir
-        self.dirname = join(video_dir, self.__name__)
+        self.static_dir = static_dir
         try:
-            makedirs(self.dirname)
+            makedirs(join(self.static_dir, self.__name__))
         except OSError:
             pass
+        self.encodes = PersistentDict()
         for k,v in encodes.items():
             self.encodes[k] = self.save_encode(v,k)
     
     def save_encode(self, stream, encode='mp4', dst=None, buffer_size=16384):
         if dst is None:
-            dst = join(self.dirname, '%s.%s' % (self.__name__, encode))
+            dst = join(self.static_dir, self.__name__, '%s.%s' % (self.__name__, encode))
         if not isinstance(dst, basestring):
             raise TypeError('Destination should be a string not a %s' % type(dst))
         dst = abspath(dst)
@@ -139,6 +137,7 @@ class Video(Persistent):
             return None
         else:
             dst_file.close()
+            ##TODO: gather extra info - length/dims/bitrate etc
             return dst
     
     def __repr__(self):
@@ -208,18 +207,18 @@ class Channel(Persistent):
         (Allow, 'admin', 'add'),
         (Allow, 'admin', 'edit'),
         ]
-
+    
     implements(IChannel)
     
     __name__ = __parent__ = None
     title = u''
     description = u''
     default_video = u''
-
+    
     def __init__(self, name, title=u'', description=u'', default_video=u''):
         self.__name__ = name.replace(' ', '').lower()
         self.title, self.descrption, self.default_video = title, description, default_video
-
+    
     def get_listings(self, videos):
         listings = [video for video in videos.values() if self.__name__ in video.tags]
         return listings
@@ -232,11 +231,11 @@ class ChannelContainer(BaseContainer):
         (Allow, 'admin', 'add'),
         (Allow, 'admin', 'edit'),
         ]
-
+    
     implements(IChannelContainer)
-
+    
     __name__ = __parent__ = None
-
+    
     def __init__(self, *args, **kwargs):
         super(ChannelContainer, self).__init__()
     
@@ -245,13 +244,13 @@ class ChannelContainer(BaseContainer):
             return super(ChannelContainer, self).__getitem__(key)
         except KeyError: # return a dummy object
             return Channel(key)
-
+    
     def is_stored(self, key):
         if key in self.data:
             return True
         else:
             return False
-
+    
 
 class Advert(Persistent):
     """ A convenience class for storing information related to a single advert
@@ -272,9 +271,8 @@ class Advert(Persistent):
     implements(IAdvert)
     
     __name__ = __parent__ = None
-    dirname = 'var/banners/'
     
-    def __init__(self, uid, title, content, content_type, height=None, width=None, link=None, extra_html=None):
+    def __init__(self, uid, title, content, content_type, static_dir=u'var/banners/', height=None, width=None, link=None, extra_html=None):
         self.__name__ = uid
         self.title = title
         ##TODO: save file to filesystem
@@ -286,14 +284,17 @@ class Advert(Persistent):
         self.width = width
         self.link = link
         self.extra_html = extra_html
-        try:
-            self.dirname = self.__parent__.dirname
-        except:
-            pass
+        if static_dir:
+            self.static_dir = static_dir
+        else:
+            try:
+                self.static_dir = self.__parent__.static_dir
+            except:
+                self.static_dir = static_dir
     
-    def save_file(self, stream, format='png', buffer_size=16384):
+    def save_file(self, stream, ext='png', buffer_size=16384):
         if dst is None:
-            dst = join(self.dirname, '%s.%s' % (self.__name__, format))
+            dst = join(self.dirname, '%s.%s' % (self.__name__, ext))
         dst = abspath(self.dirname)
         dst_file = file(dst, 'wb')
         try:
@@ -327,16 +328,14 @@ class AdSpace(Persistent):
     
     implements(IAdSpace)
     
-    dirname = 'var/banners/'
-    
-    def __init__(self, uid, height, width, allowed_formats=(u'img', u'swf'), adverts=[], dirname=None):
+    def __init__(self, uid, height, width, allowed_formats=(u'img', u'swf'), adverts=[], static_dir=u'var/banners/'):
         self.__name__ = uid
         self.height = height
         self.width = width
         self.allowed_formats = allowed_formats
         self.adverts = AssertingList(IAdvert, adverts)
-        if not dirname:
-            self.dirname += self.__name__ + '/'
+        if not static_dir:
+            self.static_dir = static_dir
     
     def __setitem__(self, key, value):
         self.adverts[key] = value

@@ -146,6 +146,12 @@ def channel(context, request):
     title = context.title or context.__name__.title()
     return ResponseTemplate('pages/channel.html', context=context, videos=videos, title=title)
 
+## Admin Views
+
+@bfg_view(name='index.html', for_=IUserContainer)
+def view_users(context,request):
+    return ResponseTemplate('pages/view_users.html', context=context)
+
 @bfg_view(name='edit.html', for_=IChannel, request_type=IGETRequest, permission='edit')
 def edit_channel_form(context, request):
     #p_root = getUtility(IRootFactory).get_root(request.environ)
@@ -192,10 +198,6 @@ def add_video_action(context, request):
     transaction.commit()
     return ResponseTemplate('pages/add_video.html', message='Video successfully added')
 
-@bfg_view(name='index.html', for_=IUserContainer)
-def view_users(context,request):
-    return ResponseTemplate('pages/view_users.html', context=context)
-
 @bfg_view(name='add.html', for_=IAdSpaceContainer)
 def add_adspace(context, request):
     form = request.POST
@@ -203,7 +205,7 @@ def add_adspace(context, request):
     width = form.get('banner.width')
     height = form.get('banner.height')
     if not (name and width and height):
-        return ResponseTemplate('pages/add_video.html', message='Missing fields')
+        return ResponseTemplate('pages/add_adspace.html', message='Missing fields')
     adverts = {}
     #context.add_advert(uid, height, width, allowed_formats=(u'img', u'swf'), adverts=[], dirname=None)
     import transaction
@@ -214,11 +216,30 @@ def add_adspace(context, request):
 def edit_adspaces(context, request):
     return ResponseTemplate('pages/edit_adspaces.html', context=context)
 
-@bfg_view(name='edit.html', for_=IAdSpace)
-def edit_adspace(context,request):
+@bfg_view(name='edit.html', for_=IAdSpace, request_type=IGETRequest, permission='edit')
+def edit_adspace_form(context,request):
     return ResponseTemplate('pages/edit_adspace.html', context=context)
 
+@bfg_view(name='edit.html', for_=IAdSpace, request_type=IPOSTRequest, permission='edit')
+def edit_adspace_action(context,request):
+    form = request.POST
+    name = form.get('banner.name')
+    if not name:
+        return ResponseTemplate('pages/add_video.html', message='Missing fields')
 
+    t = transaction.begin()
+    try:
+        context.width, context.height = form.get('banner.width'), form.get('banner.height')
+    except: t.rollback()
+    else: t.commit()
+    
+    return ResponseTemplate('pages/edit_adspace.html', context=context)
+
+@bfg_view(name='add.html', for_=IAdvert, request_type=IPOSTRequest, permission='edit')
+def add_banner_action(context,request):
+    
+    return ResponseTemplate('pages/add_adspace.html', context=context)
+    
 
 ## /static/ 
 

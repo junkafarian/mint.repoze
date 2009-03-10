@@ -3,6 +3,8 @@ from repoze.bfg.settings import get_options
 #from repoze.zodbconn.finder import PersistentApplicationFinder
 from zope.component import getUtility, getGlobalSiteManager
 
+import mint.repoze
+from mint.repoze.auth import middleware as auth_middleware
 from mint.repoze.urldispatch import RoutesMapper
 from mint.repoze.interfaces import IVideoContainer
 from mint.repoze.models import Video
@@ -67,11 +69,10 @@ class MintApp:
     
     @property
     def app(self):
-        import mint.repoze
-        from mint.repoze.auth import middleware as auth_middleware
         app = make_app(self.get_root, mint.repoze, options=self.options)
         app = auth_middleware(app, self.options['zodb_base'])
-        return app
+        self.app = app
+        return self.app
     
     def __call__(self, environ, start_response):
         return self.app(environ, start_response)

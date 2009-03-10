@@ -18,6 +18,7 @@ requires = [
         'repoze.tm',
         'repoze.who',
         'jinja2',
+        'FormEncode',
         'webtest',
         'nose',
         ]
