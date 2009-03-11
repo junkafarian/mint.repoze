@@ -1,0 +1,8 @@
+{% extends "layout/master.html" %}
+{% block title %}user | {{ context.id }}{% endblock %}
+{% block body %}
+  <h1>{{context.id}}</h1>
+  
+  <div>{{context.email}}</div>
+  <div>{{context.password}}</div>
+{% endblock %}

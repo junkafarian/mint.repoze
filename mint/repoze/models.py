@@ -417,7 +417,7 @@ class User(Persistent):
         self.password = password
     
 
-class UserContainer(PersistentMapping):
+class UserContainer(BaseContainer):
     """ A simple container for Users
         
         >>> from mint.repoze.interfaces import IUserContainer
@@ -440,9 +440,6 @@ class UserContainer(PersistentMapping):
             ]
     
     implements(IUserContainer)
-    
-    def __init__(self, **kwargs):
-        self.data = dict(**kwargs)
     
     def add_user(self, id, *args, **kwargs):
         if id in self.data:
