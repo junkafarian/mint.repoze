@@ -21,16 +21,6 @@ log = logging.getLogger('mint.root')
 
 default_zodb_uri = 'zeo://localhost:8100'
 
-def is_valid_video(environ, result):
-    name = result['video_name']
-    #gsm = getGlobalSiteManager()
-    #videos = gsm.getUtility(IVideoContainer)
-    if  '.' in name or \
-        name.startswith('_'):
-        return False
-    return True
-    
-
 class MintApp:
     def __init__(self, **kw):
         zodb_uri = kw.get('zodb_uri')
