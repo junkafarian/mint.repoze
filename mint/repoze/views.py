@@ -9,7 +9,7 @@ import logging
 
 from mint.repoze.root import Root, utility_finder
 from mint.repoze.models import Video, Channel
-from mint.repoze.interfaces import IVideo, IVideoContainer, IChannel, IChannelContainer, IUserContainer, IAdSpaceContainer, IAdSpace, IAdvert
+from mint.repoze.interfaces import IVideo, IVideoContainer, IChannel, IChannelContainer, IUserContainer, IUser, IAdSpaceContainer, IAdSpace, IAdvert
 
 
 ## Utils
@@ -65,7 +65,6 @@ def login(context, request):
 @bfg_view(name='logout.html', for_=Root, permission='view')
 def logout(context, request):
     return HTTPUnauthorized(headers=[('Location', request.application_url)])
-
 
 ## Widgets
 
@@ -141,14 +140,6 @@ def video_redirect(context, request):
 def video(context, request):
     return ResponseTemplate('pages/video.html', context=context)
 
-@bfg_view(name='tag')
-@with_widgets('auth_widget')
-def tag(context, request):
-    p_root = getUtility(IRootFactory).get_root(request.environ)
-    videos = utility_finder(p_root, 'videos')
-    videos = [render_view(video,request,'video_listing_widget') for video in videos.values()]
-    return ResponseTemplate('pages/tag.html', context=context, videos=videos)
-
 @bfg_view(for_=IChannel, permission='view')
 @with_widgets('auth_widget')
 def channel(context, request):
@@ -158,11 +149,39 @@ def channel(context, request):
     title = context.title or context.__name__.title()
     return ResponseTemplate('pages/channel.html', context=context, videos=videos, title=title)
 
+@bfg_view(name='profile.html', for_=IUser)
+def user_profile(context, request):
+    return ResponseTemplate('pages/user/profile.html', context=context)
+
 ## Admin Views
+
+@bfg_view(name='register.html', for_=IUserContainer, request_type=IGETRequest)
+def register_form(context,request):
+    return ResponseTemplate('pages/user/register.html', context=context, message=u'Please fill out the details below')
+
+@bfg_view(name='register.html', for_=IUserContainer, request_type=IPOSTRequest)
+def register_action(context,request):
+    message = u''
+    form = request.POST
+    uid = form.get('user.id')
+    email = form.get('user.email')
+    password1 = form.get('user.password')
+    password2 = form.get('user.password.confirm')
+    if password1 == password2:
+        context.add_user(uid, email=email, password=password1)
+        transaction.commit()
+        message += u'user successfully added\ncurrent users: %s' % context.keys()
+    else:
+        message += u'passwords do not match'
+    return ResponseTemplate('pages/user/register.html', context=context, message=message)
 
 @bfg_view(name='index.html', for_=IUserContainer)
 def view_users(context,request):
     return ResponseTemplate('pages/view_users.html', context=context)
+
+# @bfg_view(name='edit_profile.html', for_=IUser, permission='authenticated')
+# def edit_user_profile(context, request):
+#     return ResponseTemplate('pages/user/edit_profile.html')
 
 @bfg_view(name='edit.html', for_=IChannel, request_type=IGETRequest, permission='edit')
 def edit_channel_form(context, request):

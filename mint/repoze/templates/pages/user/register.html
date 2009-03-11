@@ -1,0 +1,13 @@
+{% extends "layout/master.html" %}
+{% block title %}user | register{% endblock %}
+{% block body %}
+  <h1>Welcome to mint, please register</h1>
+  {{ message }}
+  <form action="" method="post" enctype="multipart/form-data">
+    <div><label for="user.id">Username</label><input name="user.id" type="text" /></div>
+    <div><label for="user.email">Email address</label><input name="user.email" type="text" /></div>
+    <div><label for="user.password">Password</label><input name="user.password" type="password" /></div>
+    <div><label for="user.password.confirm">Confirm Password</label><input name="user.password.confirm" type="password" /></div>
+    <input type="submit" />
+  </form>
+{% endblock %}

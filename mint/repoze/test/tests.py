@@ -212,15 +212,31 @@ def test_reachable_static():
         u'`200` not in response'
     )
 
-def test_reachable_zopish_static():
-    """Static files are accessible via zope syntax (/@@static/)"""
-    res = app.get('/@@static/css/screen.css')
+def test_user_exists(user=users[u'admin']):
+    res = app.get('/users/%s/profile.html' % user['id'])
     assert_true(
-        '200' in res.status,
-        u'`200` not in response'
+        user[u'id'] in res.body,
+        u'User ID should be in the profile page'
     )
 
-
+@with_setup(logout)
+def test_register_new_user():
+    new_user = {
+        'user.id': u'new_user',
+        'user.email': u'newuser@green.tv',
+        'user.password': u'password',
+        'user.password.confirm': u'password'
+    }
+    res = app.post('/users/register.html', new_user)
+    assert_true(
+        u'successfully added' in res.body,
+        u'the user should have been added successfully'
+    )
+    from mint.repoze.models import User
+    u = dict(id=new_user['user.id'],email=new_user['user.email'],password=new_user['user.password'])
+    test_user_exists(u)
+    logout()
+    
 
 @with_setup(login,logout)
 def test_add_video():
