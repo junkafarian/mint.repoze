@@ -212,6 +212,10 @@ def test_reachable_static():
         u'`200` not in response'
     )
 
+def test_widgets():
+    #from views import with_widgets, test_widget
+    pass
+
 def test_user_exists(user=users[u'admin']):
     res = app.get('/users/%s/profile.html' % user['id'])
     assert_true(

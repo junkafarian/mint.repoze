@@ -30,6 +30,10 @@ class AssertingList(list):
         >>> class MockOb(object):
         ...     implements(ExInterface)
         >>> li.append(MockOb())
+        >>> li.append(object()) # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+            ...
+        ValueError: values must implement <InterfaceClass mint.repoze.models.ExInterface>
         
     """
     def __init__(self, interface, vals=[]):
@@ -51,7 +55,13 @@ class AssertingList(list):
     
 
 class BaseContainer(PersistentMapping):
-    
+    """ Provides a basis for `container` objects
+        >>> container = BaseContainer()
+        >>> container[u'foo'] = u'bar'
+        >>> container.items()
+        [(u'foo', u'bar')]
+        
+    """
     def __init__(self, *args, **kwargs):
         self.data = PersistentDict()
     
