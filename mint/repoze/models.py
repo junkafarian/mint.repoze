@@ -368,6 +368,20 @@ class AdSpace(Persistent):
             self.static_dir = static_dir
     
     def __setitem__(self, key, value):
+        """ Ensures items added to the adverts implement IAdvert
+            
+            >>> from mint.repoze.models import AdSpace, Advert
+            >>> from mint.repoze.interfaces import IAdvert
+            >>> from zope.interface import implements
+            >>> ad = Advert(uid=u'largeblue', title=u'largeblue productions ltd.', content=u'', content_type=u'img',
+            ...             height=60, width=468, link=u'http://largeblue.com/', extra_html=u'')
+            >>> banner = AdSpace(uid=u'main_banner', height=60, width=468, adverts=[ad])
+            >>> banner[0] = ad
+            >>> banner[0] = object() # doctest: +ELLIPSIS
+            Traceback (most recent call last):
+            ...
+            ValueError: values must implement <InterfaceClass mint.repoze.interfaces.IAdvert>
+        """
         self.adverts[key] = value
     
     def append(self, key):
@@ -462,6 +476,11 @@ class UserContainer(BaseContainer):
         1
         >>> ob.keys()
         [u'user1']
+        >>> ob.add_user('user1', 'foo@bar.com', 'password') # doctest +ELLIPSIS
+        Traceback (most recent call last):
+            ...
+        KeyError: 'There is already a user with the id `user1`'
+        
     """
     __acl__ = [
             (Allow, Everyone, 'view'),
@@ -473,7 +492,7 @@ class UserContainer(BaseContainer):
     
     def add_user(self, id, *args, **kwargs):
         if id in self.data:
-            raise KeyError(u'There is already a user with the id `%s`' % id)
+            raise KeyError('There is already a user with the id `%s`' % id)
         self.data[id] = User(id, *args, **kwargs)
     
 
