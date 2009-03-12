@@ -58,8 +58,14 @@ class BaseContainer(PersistentMapping):
     """ Provides a basis for `container` objects
         >>> container = BaseContainer()
         >>> container[u'foo'] = u'bar'
+        >>> container[u'foo']
+        u'bar'
         >>> container.items()
         [(u'foo', u'bar')]
+        >>> container.keys()
+        [u'foo']
+        >>> container.values()
+        [u'bar']
         
     """
     def __init__(self, *args, **kwargs):
