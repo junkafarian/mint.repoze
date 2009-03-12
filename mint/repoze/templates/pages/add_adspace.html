@@ -1,8 +1,10 @@
 {% extends "layout/master.html" %}
-{% block title %}Banners | Add Advert{% endblock %}
+{% block title %}Banners | Add Banner{% endblock %}
 {% block body %}
+  Add a new Banner
+  {{ message }}
   <form action="" method="post" enctype="multipart/form-data">
-    <div><label for="banner.name">Name</label><input name="banner.name" type="text" /></div>
+    <div><label for="banner.title">Name</label><input name="banner.name" type="text" /></div>
     <div><label>Dimensions</label><input name="banner.width" type="text" />x<input name="banner.height" type="text" /></div>
     <input type="submit" />
   </form>

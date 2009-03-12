@@ -54,6 +54,7 @@ def test_reset_root():
         hasattr(root, 'default_video'),
         u'root object should have `default_video` attribute'
     )
+    del environ
 
 def test_valid_root():
     """root returns a `200` status code"""
@@ -115,7 +116,7 @@ def test_intro_video_page():
         u'video should have a video player'
     )
     res = res.click('feature')
-    test_dynamic_channel_page(res, u'feature')
+    test_channel_page(res, u'feature')
 
 # hmm?
 # def test_flibble_page_returns_404():
@@ -173,7 +174,7 @@ def test_legacy_video_redirect():
         u'response should be a 301 response, not %s' % res.status
     )
 
-def test_dynamic_channel_page(res=None, channel=None):
+def test_channel_page(res=None, channel=None):
     """check contents of a channel page | check links on page return real video pages"""
     if res == None and channel == None:
         res = app.get('/channels/feature')
@@ -201,12 +202,54 @@ def test_dynamic_channel_page(res=None, channel=None):
         res = res.click('Intro')
         test_intro_video(res)
 
-def test_persistent_channel_page():
+@with_setup(login,logout)
+def test_persistent_channel_page(res=None, channel=None):
+    if res == None and channel == None:
+        res = app.get('/channels/water')
+        channel = u'water'
+    else:
+        assert_false(
+            res == None or channel == None,
+            u'When feeding this test parameters, both a webob.Response and a channel name must be defined'
+        )
+    test_channel_page(res, channel)
+    new_channel = {
+        u'channel.title': u'Water Channel',
+        u'channel.description': u'Welcome to the water channel'
+    }
+    for k,v in new_channel.items():
+        assert_false(
+            v in res.body,
+            u'The new `%s` should not be displayed on the channel page yet' % k
+        )
+    res = app.get('/channels/water/edit.html')
+    assert_true(
+        u'update the information' in res.body,
+        u'Should be presented with an edit form'
+    )
+    res = app.post('/channels/water/edit.html', new_channel)
+    assert_true(
+        u'updated successfully' in res.body,
+        u'channel should have been successfully updated'
+    )
     res = app.get('/channels/water')
+    for k,v in new_channel.items():
+        assert_true(
+            v in res.body,
+            u'The new `%s` should be displayed on the channel page' % k
+        )
 
 def test_reachable_static():
     """Static files are accessible at `/static/`"""
     res = app.get('/static/css/screen.css')
+    assert_true(
+        '200' in res.status,
+        u'`200` not in response'
+    )
+
+def test_reachable_static_encodes():
+    """Static files are accessible at `/encodes/`"""
+    res = app.get('/encodes/intro/intro.mp4')
     assert_true(
         '200' in res.status,
         u'`200` not in response'
@@ -231,6 +274,17 @@ def test_register_new_user():
         'user.password': u'password',
         'user.password.confirm': u'password'
     }
+    new_user_bad_password = {
+        'user.id': u'new_user',
+        'user.email': u'newuser@green.tv',
+        'user.password': u'password',
+        'user.password.confirm': u'bad_password'
+    }
+    res = app.post('/users/register.html', new_user_bad_password)
+    assert_true(
+        u'passwords do not match' in res.body,
+        u'the user should have not been added successfully because of bad passwords'
+    )
     res = app.post('/users/register.html', new_user)
     assert_true(
         u'successfully added' in res.body,
@@ -248,7 +302,7 @@ def test_add_video():
     res = app.get('/videos/add_video.html')
     assert_true(
         '200' in res.status,
-        u'add video url not available'
+        u'add video url should be available'
     )
     
     res = app.post(
@@ -313,6 +367,67 @@ def test_set_default_video():
     assert_true(
         new_form['video.name.current'].value == target_default,
         u"Default video should have been updated"
+    )
+
+@with_setup(login,logout)
+def test_add_adspace():
+    res = app.get('/banners/add.html')
+    print res.body
+    assert_true(
+        u'Add Banner' in res.body,
+        u'AdSpace Add Form should be available'
+    )
+    res = app.post(
+        '/banners/add.html', 
+        {
+            'banner.title': 'Main Banner',
+            'banner.width': '100',
+            'banner.height': ''
+        }
+    )
+    assert_false(
+        u'success' in res.body,
+        u'The form post should return a `missing fields` message'
+    )
+    res = app.post(
+        '/banners/add.html', 
+        {
+            'banner.title': 'Main Banner',
+            'banner.width': '100',
+            'banner.height': '100'
+        }
+    )
+    assert_true(
+        u'success' in res.body,
+        u'The form post should return a success message'
+    )
+
+@with_setup(login,logout)
+def test_edit_adspace():
+    res = app.get('/banners/main_banner/edit.html')
+    assert_true(
+        u'200' in res.status,
+        u'banner should have been created and should have an edit.html page'
+    )
+    res = app.post(
+        '/banners/main_banner/edit.html', 
+        {
+            'banner.title': ''
+        }
+    )
+    assert_false(
+        u'success' in res.body,
+        u'The form post should return a `missing fields` message'
+    )
+    res = app.post(
+        '/banners/main_banner/edit.html', 
+        {
+            'banner.title': 'Main Banner'
+        }
+    )
+    assert_true(
+        u'success' in res.body,
+        u'The form post should return a success message'
     )
 
 def test_rules_the_world(world=True):

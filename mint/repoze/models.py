@@ -54,6 +54,38 @@ class AssertingList(list):
         super(AssertingList,self).append(value)
     
 
+class AssertingDict(dict):
+    """ A convenience class to assert added objects provide a specified interface
+        
+        >>> li = AssertingDict('this is not an interface') # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        TypeError: Must specify an interface to assert against
+        >>> from zope.interface import Interface, implements
+        >>> class ExInterface(Interface):
+        ...     pass
+        >>> li = AssertingDict(ExInterface)
+        >>> class MockOb(object):
+        ...     implements(ExInterface)
+        >>> li['foo'] = MockOb()
+        >>> li['bar'] = object() # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+            ...
+        ValueError: values must implement <InterfaceClass mint.repoze.models.ExInterface>
+        
+    """
+    def __init__(self, interface, data={}):
+        if not IInterface.providedBy(interface):
+            raise TypeError('Must specify an interface to assert against')
+        self.interface = interface
+        self.update(data)
+    
+    def __setitem__(self,key,value):
+        if not self.interface.providedBy(value):
+            raise ValueError('values must implement %s' % self.interface)
+        super(AssertingDict,self).__setitem__(key,value)
+        
+
 class BaseContainer(PersistentMapping):
     """ Provides a basis for `container` objects
         >>> container = BaseContainer()
@@ -344,14 +376,14 @@ class Advert(Persistent):
     
 
 
-class AdSpace(Persistent):
+class AdSpace(BaseContainer):
     """ Objects used for online advertising space.
         Stores Image or Flash data to be rendered within the page:
         
         >>> from mint.repoze.interfaces import IAdSpace
         >>> from mint.repoze.models import AdSpace
         >>> from mint.repoze.test.data import adverts
-        >>> banner = AdSpace(uid=u'main_banner', height=60, width=468, allowed_formats=(u'img', u'swf'), adverts=adverts)
+        >>> banner = AdSpace(title=u'Main Banner', height=60, width=468, allowed_formats=(u'img', u'swf'), adverts=adverts)
         >>> IAdSpace.providedBy(banner)
         True
         >>> 
@@ -364,12 +396,12 @@ class AdSpace(Persistent):
     
     implements(IAdSpace)
     
-    def __init__(self, uid, height, width, allowed_formats=(u'img', u'swf'), adverts=[], static_dir=u'var/banners/'):
-        self.__name__ = uid
+    def __init__(self, title, height, width, allowed_formats=(u'img', u'swf'), adverts={}, static_dir=u'var/banners/'):
+        self.title = title
         self.height = height
         self.width = width
         self.allowed_formats = allowed_formats
-        self.adverts = AssertingList(IAdvert, adverts)
+        self.data = AssertingDict(IAdvert, adverts)
         if not static_dir:
             self.static_dir = static_dir
     
@@ -381,46 +413,21 @@ class AdSpace(Persistent):
             >>> from zope.interface import implements
             >>> ad = Advert(uid=u'largeblue', title=u'largeblue productions ltd.', content=u'', content_type=u'img',
             ...             height=60, width=468, link=u'http://largeblue.com/', extra_html=u'')
-            >>> banner = AdSpace(uid=u'main_banner', height=60, width=468, adverts=[ad])
-            >>> banner[0] = ad
-            >>> banner[0] = object() # doctest: +ELLIPSIS
+            >>> banner = AdSpace(title=u'Main Banner', height=60, width=468, adverts={'ad0':ad})
+            >>> banner['ad1'] = ad
+            >>> banner['ad2'] = object() # doctest: +ELLIPSIS
             Traceback (most recent call last):
             ...
             ValueError: values must implement <InterfaceClass mint.repoze.interfaces.IAdvert>
         """
-        self.adverts[key] = value
-    
-    def append(self, key):
-        """ Ensures items added to the adverts implement IAdvert
-            
-            >>> from mint.repoze.models import AdSpace, Advert
-            >>> from mint.repoze.interfaces import IAdvert
-            >>> from zope.interface import implements
-            >>> banner = AdSpace(uid=u'main_banner', height=60, width=468)
-            >>> ad = Advert(uid=u'largeblue', title=u'largeblue productions ltd.', content=u'', content_type=u'img',
-            ...             height=60, width=468, link=u'http://largeblue.com/', extra_html=u'')
-            >>> banner.append(ad)
-            >>> banner.append(object()) # doctest: +ELLIPSIS
-            Traceback (most recent call last):
-            ...
-            ValueError: values must implement <InterfaceClass mint.repoze.interfaces.IAdvert>
-            
-            
-            #>>> ad.height = 61
-            #>>> banner.append(ad) # doctest: +ELLIPSIS
-            #Traceback (most recent call last):
-            #...
-            #ValueError...
-            
-        """
-        self.adverts.append(key)
+        return super(AdSpace, self).__setitem__(key, value)
     
     def __getitem__(self, key):
-        return self.adverts[key]
+        return super(AdSpace, self).__getitem__(key)
     
 
 
-class AdSpaceContainer(PersistentMapping):
+class AdSpaceContainer(BaseContainer):
     """ A simple container for storing advert and banner objects
         
         >>> from mint.repoze.interfaces import IAdSpaceContainer
@@ -436,6 +443,12 @@ class AdSpaceContainer(PersistentMapping):
             ]
     
     implements(IAdSpaceContainer)
+    
+    def add_adspace(self, title, height, width, allowed_formats=(u'img', u'swf'), adverts=[], static_dir=u'var/banners/'):
+        uid = title.lower().replace(' ', '_')
+        ob = AdSpace(title, height, width, allowed_formats, adverts, static_dir)
+        ob.__name__ = uid
+        self.data[uid] = ob
     
 
 class User(Persistent):
