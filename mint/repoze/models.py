@@ -198,6 +198,15 @@ class VideoContainer(BaseContainer):
         return u'<VideoContainer object>'
     
     def add_video(self, name, description, tags, encodes={}):
+        """ Adds a video to the container
+            >>> video_container = VideoContainer()
+            >>> video_container.add_video(u'new_video', u'A new video', [u'news'])
+            >>> u'new_video' in video_container.data
+            True
+            >>> video_container.add_video(u'new_video', u'A new video', [u'news'])
+            >>> u'new_video_001' in video_container.data
+            True
+        """
         uid = name.lower().replace(' ', '_')
         counter = 1
         while uid in self:
@@ -239,6 +248,8 @@ class Channel(Persistent):
         listings = [video for video in videos.values() if self.__name__ in video.tags]
         return listings
     
+    def __repr__(self):
+        return u'<Channel object>'
     
 
 class ChannelContainer(BaseContainer):
@@ -262,6 +273,17 @@ class ChannelContainer(BaseContainer):
             return Channel(key)
     
     def is_stored(self, key):
+        """ Determines if `key` is persistent or has been dynamically generated
+            >>> container = ChannelContainer()
+            >>> container[u'foo']
+            <Channel object>
+            >>> container.is_stored(u'foo')
+            False
+            >>> container[u'foo'] = object()
+            >>> container.is_stored(u'foo')
+            True
+            
+        """
         if key in self.data:
             return True
         else:
@@ -309,8 +331,6 @@ class Advert(Persistent):
                 self.static_dir = static_dir
     
     def save_file(self, stream, ext='png', buffer_size=16384):
-        if dst is None:
-            dst = join(self.dirname, '%s.%s' % (self.__name__, ext))
         dst = abspath(self.dirname)
         dst_file = file(dst, 'wb')
         try:
@@ -354,6 +374,20 @@ class AdSpace(Persistent):
             self.static_dir = static_dir
     
     def __setitem__(self, key, value):
+        """ Ensures items added to the adverts implement IAdvert
+            
+            >>> from mint.repoze.models import AdSpace, Advert
+            >>> from mint.repoze.interfaces import IAdvert
+            >>> from zope.interface import implements
+            >>> ad = Advert(uid=u'largeblue', title=u'largeblue productions ltd.', content=u'', content_type=u'img',
+            ...             height=60, width=468, link=u'http://largeblue.com/', extra_html=u'')
+            >>> banner = AdSpace(uid=u'main_banner', height=60, width=468, adverts=[ad])
+            >>> banner[0] = ad
+            >>> banner[0] = object() # doctest: +ELLIPSIS
+            Traceback (most recent call last):
+            ...
+            ValueError: values must implement <InterfaceClass mint.repoze.interfaces.IAdvert>
+        """
         self.adverts[key] = value
     
     def append(self, key):
@@ -448,6 +482,11 @@ class UserContainer(BaseContainer):
         1
         >>> ob.keys()
         [u'user1']
+        >>> ob.add_user('user1', 'foo@bar.com', 'password') # doctest +ELLIPSIS
+        Traceback (most recent call last):
+            ...
+        KeyError: 'There is already a user with the id `user1`'
+        
     """
     __acl__ = [
             (Allow, Everyone, 'view'),
@@ -459,7 +498,7 @@ class UserContainer(BaseContainer):
     
     def add_user(self, id, *args, **kwargs):
         if id in self.data:
-            raise KeyError(u'There is already a user with the id `%s`' % id)
+            raise KeyError('There is already a user with the id `%s`' % id)
         self.data[id] = User(id, *args, **kwargs)
     
 
