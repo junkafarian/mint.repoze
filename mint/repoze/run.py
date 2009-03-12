@@ -22,6 +22,16 @@ log = logging.getLogger('mint.root')
 default_zodb_uri = 'zeo://localhost:8100'
 
 class MintApp:
+    """ Application object
+        
+        >>> from mint.repoze.run import default_zodb_uri
+        >>> app = MintApp(zodb_base=u'test_mint', zodb_uri=None)
+        >>> app.options['zodb_uri'] == default_zodb_uri
+        True
+        >>> app = MintApp(zodb_base=u'test_mint', zodb_uri=u'file:///tmp/test.db')
+        >>> app.options['zodb_uri'] == u'file:///tmp/test.db'
+        True
+    """
     def __init__(self, **kw):
         zodb_uri = kw.get('zodb_uri')
         if zodb_uri is None:

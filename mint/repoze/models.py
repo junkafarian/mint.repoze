@@ -192,6 +192,15 @@ class VideoContainer(BaseContainer):
         return u'<VideoContainer object>'
     
     def add_video(self, name, description, tags, encodes={}):
+        """ Adds a video to the container
+            >>> video_container = VideoContainer()
+            >>> video_container.add_video(u'new_video', u'A new video', [u'news'])
+            >>> u'new_video' in video_container.data
+            True
+            >>> video_container.add_video(u'new_video', u'A new video', [u'news'])
+            >>> u'new_video_001' in video_container.data
+            True
+        """
         uid = name.lower().replace(' ', '_')
         counter = 1
         while uid in self:

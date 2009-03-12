@@ -17,7 +17,6 @@ from mint.repoze.models import ChannelContainer
 from mint.repoze.models import AdSpaceContainer
 
 class PersistentUtilityFinder(object):
-    
     implements(IUtilityFinder)
     
     _utilities = {}
@@ -28,6 +27,17 @@ class PersistentUtilityFinder(object):
         return find_model(context, self._utilities[utility_name])
     
     def register_utility(self, name, path):
+        """ A utility object to store and retrieve paths to persistent utilities
+            >>> finder = PersistentUtilityFinder()
+            >>> finder.register_utility(u'test', (u'root', u'test'))
+            >>> finder.register_utility(u'test', u'root/test') # doctest +ELLIPSIS
+            Traceback (most recent call last):
+                ...
+            TypeError: `path` must be iterable
+            >>> u'test' in finder._utilities
+            True
+            >>> del finder._utilities[u'test']
+        """
         if isinstance(path, tuple) or isinstance(path, list):
             self._utilities[name] = path
         else:
@@ -35,6 +45,7 @@ class PersistentUtilityFinder(object):
     
     def utilities(self):
         return self._utilities.keys()
+    
 
 global utility_finder
 utility_finder = PersistentUtilityFinder()
