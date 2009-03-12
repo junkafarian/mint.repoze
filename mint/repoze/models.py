@@ -325,8 +325,6 @@ class Advert(Persistent):
                 self.static_dir = static_dir
     
     def save_file(self, stream, ext='png', buffer_size=16384):
-        if dst is None:
-            dst = join(self.dirname, '%s.%s' % (self.__name__, ext))
         dst = abspath(self.dirname)
         dst_file = file(dst, 'wb')
         try:
