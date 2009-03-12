@@ -242,6 +242,8 @@ class Channel(Persistent):
         listings = [video for video in videos.values() if self.__name__ in video.tags]
         return listings
     
+    def __repr__(self):
+        return u'<Channel object>'
     
 
 class ChannelContainer(BaseContainer):
@@ -265,6 +267,17 @@ class ChannelContainer(BaseContainer):
             return Channel(key)
     
     def is_stored(self, key):
+        """ Determines if `key` is persistent or has been dynamically generated
+            >>> container = ChannelContainer()
+            >>> container[u'foo']
+            <Channel object>
+            >>> container.is_stored(u'foo')
+            False
+            >>> container[u'foo'] = object()
+            >>> container.is_stored(u'foo')
+            True
+            
+        """
         if key in self.data:
             return True
         else:
