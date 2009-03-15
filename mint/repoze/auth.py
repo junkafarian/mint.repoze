@@ -33,7 +33,7 @@ login_form = """
 from zope.interface import implements
 from zope.component import getUtility, getGlobalSiteManager
 
-from repoze.who.interfaces import IAuthenticator
+from repoze.who.interfaces import IAuthenticator, IMetadataProvider
 from repoze.who.utils import resolveDotted
 from repoze.bfg.interfaces import IRootFactory
 
@@ -42,8 +42,8 @@ from repoze.zodbconn.finder import dbfactory_from_uri
 def default_checker(password, against):
     return password == against
 
-class ZODBPlugin:
-    implements(IAuthenticator)
+class ZODBPlugin(object):
+    implements(IAuthenticator, IMetadataProvider)
     dbfactory = staticmethod(dbfactory_from_uri) # for testing override
     
     def __init__(self, zodb_uri, users_finder, base, checker=default_checker):
@@ -75,6 +75,19 @@ class ZODBPlugin:
         finally:
             conn.close()
     
+    def add_metadata(self, environ, identity):
+        userid = identity.get('repoze.who.userid')
+        conn = self._getdb().open()
+        try:
+            users = self._getusers(conn)
+            user = users.get(userid, None)
+            if user:
+                identity['groups'] = user.groups
+        except:
+            identity['groups'] = []
+        finally:
+            conn.close()
+        
 
 def middleware(app, base):
     from repoze.who.middleware import PluggableAuthenticationMiddleware
@@ -100,7 +113,7 @@ def middleware(app, base):
     #authenticators = [('htpasswd', htpasswd)]
     authenticators = [('zodb', zodb)]
     challengers = [('form', form),('basicauth',basicauth)]
-    mdproviders = []
+    mdproviders = [('groups', zodb)]
     
     from repoze.who.classifiers import default_request_classifier, default_challenge_decider
     log_stream = None

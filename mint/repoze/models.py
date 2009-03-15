@@ -213,6 +213,8 @@ class VideoContainer(BaseContainer):
             (Allow, Everyone, 'view'),
             (Allow, 'admin', 'add'),
             (Allow, 'admin', 'edit'),
+            (Allow, 'contributor', 'add'),
+            (Allow, 'contributor', 'edit'),
             ]
     
     implements(IVideoContainer,ILocation)
@@ -478,6 +480,7 @@ class User(Persistent):
         self.id = id
         self.email = email
         self.password = password
+        self.groups = []
     
 
 class UserContainer(BaseContainer):
@@ -512,7 +515,9 @@ class UserContainer(BaseContainer):
     def add_user(self, id, *args, **kwargs):
         if id in self.data:
             raise KeyError('There is already a user with the id `%s`' % id)
-        self.data[id] = User(id, *args, **kwargs)
+        user = User(id, *args, **kwargs)
+        user.groups.append('contributor')
+        self.data[id] = user
     
 
 

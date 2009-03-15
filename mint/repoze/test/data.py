@@ -26,6 +26,11 @@ users = {
         'id': 'admin',
         'email': 'admin@mint.com',
         'password': 'test'
+    },
+    'contributor': {
+        'id': 'contributor',
+        'email': 'contributor@mint.com',
+        'password': 'test'
     }
 }
 

@@ -274,11 +274,6 @@ def edit_adspace_action(context,request):
     else: t.commit()
     
     return ResponseTemplate('pages/edit_adspace.html', context=context, message='The banner was successfully updated')
-
-@bfg_view(name='add.html', for_=IAdvert, request_type=IPOSTRequest, permission='edit')
-def add_banner_action(context,request):
-    
-    return ResponseTemplate('pages/add_adspace.html', context=context)
     
 
 ## /static/ 

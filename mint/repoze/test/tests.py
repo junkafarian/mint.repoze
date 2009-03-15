@@ -40,6 +40,12 @@ def login(user=users[u'admin'], url=u'/login.html', app=app):
     except KeyError:
         print res
 
+def login_as_admin():
+    return login(user=users['admin'])
+
+def login_as_contributor():
+    return login(user=users['contributor'])
+
 def test_reset_root():
     from mint.repoze.root import ZODBInit
     from mint.repoze.root import PersistentApplicationFinder
@@ -296,7 +302,7 @@ def test_register_new_user():
     logout()
     
 
-@with_setup(login,logout)
+@with_setup(login_as_admin,logout)
 def test_add_video():
     """Publish a new video through the web interface"""
     res = app.get('/videos/add_video.html')
@@ -349,7 +355,7 @@ def test_add_video():
     )
     
 
-@with_setup(login,logout)
+@with_setup(login_as_admin,logout)
 def test_set_default_video():
     res = app.get('/set_default_video.html')
     form = res.form
@@ -369,7 +375,7 @@ def test_set_default_video():
         u"Default video should have been updated"
     )
 
-@with_setup(login,logout)
+@with_setup(login_as_admin,logout)
 def test_add_adspace():
     res = app.get('/banners/add.html')
     print res.body
@@ -402,7 +408,7 @@ def test_add_adspace():
         u'The form post should return a success message'
     )
 
-@with_setup(login,logout)
+@with_setup(login_as_admin,logout)
 def test_edit_adspace():
     res = app.get('/banners/main_banner/edit.html')
     assert_true(
