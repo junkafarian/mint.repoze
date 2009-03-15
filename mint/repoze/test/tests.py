@@ -302,7 +302,7 @@ def test_register_new_user():
     logout()
     
 
-@with_setup(login_as_admin,logout)
+@with_setup(login_as_contributor,logout)
 def test_add_video():
     """Publish a new video through the web interface"""
     res = app.get('/videos/add_video.html')
@@ -336,6 +336,9 @@ def test_add_video():
         'testvid1' in res.body,
         u'video not searchable by tags'
     )
+    
+    logout()
+    login_as_admin()
     
     res = app.post(
         '/set_default_video.html',
