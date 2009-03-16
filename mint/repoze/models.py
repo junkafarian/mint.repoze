@@ -1,6 +1,11 @@
 from shutil import copyfileobj
 from os import makedirs
 from os.path import abspath, join
+try:
+    from hashlib import md5
+except ImportError:
+    from md5 import md5
+
 from zope.interface import implements, Interface
 from zope.interface.interfaces import IInterface
 from repoze.bfg.security import Everyone, Allow, Deny

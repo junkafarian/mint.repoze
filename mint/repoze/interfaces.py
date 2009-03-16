@@ -78,3 +78,5 @@ class IUserContainer(Interface):
     def add_user(id, *args, **kwargs):
         """adds a new user to the container"""
 
+class ISyndication(Interface):
+    pass

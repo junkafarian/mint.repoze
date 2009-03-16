@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" >
+<channel>
+
+  <title py:if="'title' in site_data">${site_data['title']}</title>
+  <link py:if="'link' in site_data">${site_data['link']}</link>
+  <description py:if="'description' in site_data">${site_data['description']}</description>
+  <language py:if="'language' in site_data">${site_data['language']}</language>
+  <image py:if="'image_url' in site_data">
+        <url>${site_data['image_url']}</url>
+        <title py:if="'title' in site_data">${site_data['title']}</title>
+        <link py:if="'link' in site_data">${site_data['link']}</link>
+  </image>
+  <lastBuildDate py:if="'lastBuildDate' in site_data">${site_data['lastBuildDate']}</lastBuildDate>
+  <copyright py:if="'copyright' in site_data">${site_data['copyright']}</copyright>
+  <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+  <generator>Protoplex RSS Generator</generator>
+
+  <itunes:subtitle py:if="'description' in site_data">${site_data['description']}</itunes:subtitle>
+  <itunes:summary py:if="'summary' in site_data">${site_data['summary']}</itunes:summary>
+
+  <itunes:owner py:if="'site_owner' in site_data">
+        <itunes:name>${site_data['site_owner'][0]}</itunes:name>
+        <itunes:email>${site_data['site_owner'][1]}</itunes:email>
+  </itunes:owner>
+
+  <itunes:image py:if="'itunes_image_url' in site_data"
+                                href="${site_data['itunes_image_url']}" />
+
+  <itunes:category py:if="'categories' in site_data" py:for="category in site_data['categories']" text="${category}" />
+
+  <itunes:explicit>no</itunes:explicit>
+
+  <item py:for="(item, ipod) in items">
+
+        <title>${item.title}</title>
+        <guid isPermaLink="false">${uuid2string(item.object.uuid)}</guid>
+        <link>/${quote(item.__name__)}</link>
+        <author>${site_data['site_owner'][1]} (${item.author})</author>
+        <pubDate>${item.published_date.strftime("%a, %d %b %Y %H:%M:%S GMT")}</pubDate>
+        <description>${item.description}</description>
+        <enclosure url="${media_url + quote(ipod.file_path)}"
+                           length="${ipod.size}"
+                           type="${video_mimetypes[ipod.mimetype]}" />
+        <itunes:duration>${itunes_duration(item.duration)}</itunes:duration>
+        <itunes:keywords>${', '.join(get_tags_for_object(item.object.uuid))}</itunes:keywords>
+  </item>
+
+</channel>
+</rss>

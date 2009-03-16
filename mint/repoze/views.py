@@ -9,7 +9,7 @@ import logging
 
 from mint.repoze.root import Root, utility_finder
 from mint.repoze.models import Video, Channel
-from mint.repoze.interfaces import IVideo, IVideoContainer, IChannel, IChannelContainer, IUserContainer, IUser, IAdSpaceContainer, IAdSpace, IAdvert
+from mint.repoze.interfaces import IVideo, IVideoContainer, IChannel, IChannelContainer, IUserContainer, IUser, IAdSpaceContainer, IAdSpace, IAdvert, ISyndication
 
 
 ## Utils
@@ -55,6 +55,7 @@ def with_widgets(*widgets):
             return response
         return wrapper
     return decorate
+
 
 ## Auth
 
@@ -148,6 +149,11 @@ def channel(context, request):
 @bfg_view(name='profile.html', for_=IUser)
 def user_profile(context, request):
     return ResponseTemplate('pages/user/profile.html', context=context)
+
+@bfg_view(name='feed.rss', for_=ISyndication)
+def rss_feed(context, request):
+    return ResponseTemplate('pages/feed.rss', metadata=metadata, items=items)
+
 
 ## Admin Views
 
