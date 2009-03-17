@@ -10,6 +10,7 @@ from zope.interface import implements, Interface
 from zope.interface.interfaces import IInterface
 from repoze.bfg.security import Everyone, Allow, Deny
 from repoze.bfg.interfaces import ILocation
+from repoze.bfg.traversal import model_path_tuple
 
 from mint.repoze.interfaces import IVideo, IVideoContainer
 from mint.repoze.interfaces import IChannel, IChannelContainer
@@ -124,6 +125,13 @@ class BaseContainer(PersistentMapping):
         return self.data.values()
     
 
+class PersistentLink(Persistent):
+    
+    def __init__(self, context):
+        self.path = model_path_tuple(context)
+    
+    
+## Models
 
 class Video(Persistent):
     """ A simple Video object
@@ -255,13 +263,17 @@ class VideoContainer(BaseContainer):
         import transaction
         transaction.commit()
     
-    def get_videos_by_tag(self, tag):
-        """ Returns a list of video objects with the given tag
+    def get_listings(self, videos=None):
+        """ Returns an iterable of Video objects to be used in a syndication feed
+            
             >>> from mint.repoze.test.data import video_container
-            >>> video_container.get_videos_by_tag('feature') # doctest: +ELLIPSIS
-            [<Video name=...]
+            >>> listings = video_container.get_listings()
+            >>> listings[0] == video_container.data.values()[0]
+            True
         """
-        return [video for video in self.data.values() if tag in video.tags]
+        if videos is None:
+            videos = self.data
+        return [video for video in videos.values() if IVideo.providedBy(video)]
     
 
 
@@ -284,8 +296,7 @@ class Channel(Persistent):
         self.title, self.descrption, self.default_video = title, description, default_video
     
     def get_listings(self, videos):
-        listings = [video for video in videos.values() if self.__name__ in video.tags]
-        return listings
+        return [video for video in videos.values() if self.__name__ in video.tags]
     
     def __repr__(self):
         return u'<Channel object>'

@@ -79,4 +79,7 @@ class IUserContainer(Interface):
         """adds a new user to the container"""
 
 class ISyndication(Interface):
-    pass
+    def get_listings(videos):
+        """Returns an iterable of items to be used in a syndication feed"""
+    
+

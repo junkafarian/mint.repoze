@@ -150,8 +150,10 @@ def channel(context, request):
 def user_profile(context, request):
     return ResponseTemplate('pages/user/profile.html', context=context)
 
-@bfg_view(name='feed.rss', for_=ISyndication)
+@bfg_view(name='itunes.rss', for_=ISyndication)
 def rss_feed(context, request):
+    items = context.get_listings()
+    metadata = {}
     return ResponseTemplate('pages/feed.rss', metadata=metadata, items=items)
 
 
