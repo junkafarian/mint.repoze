@@ -125,12 +125,7 @@ class BaseContainer(PersistentMapping):
         return self.data.values()
     
 
-class PersistentLink(Persistent):
-    
-    def __init__(self, context):
-        self.path = model_path_tuple(context)
-    
-    
+
 ## Models
 
 class Video(Persistent):
@@ -295,7 +290,9 @@ class Channel(Persistent):
         self.__name__ = name.replace(' ', '').lower()
         self.title, self.descrption, self.default_video = title, description, default_video
     
-    def get_listings(self, videos):
+    def get_listings(self, videos=None):
+        from mint.repoze.root import utility_finder
+        videos = utility_finder(self, 'videos')
         return [video for video in videos.values() if self.__name__ in video.tags]
     
     def __repr__(self):
@@ -309,7 +306,7 @@ class ChannelContainer(BaseContainer):
         (Allow, 'admin', 'edit'),
         ]
     
-    implements(IChannelContainer)
+    implements(IChannelContainer, ILocation)
     
     __name__ = __parent__ = None
     
@@ -320,16 +317,24 @@ class ChannelContainer(BaseContainer):
         try:
             return super(ChannelContainer, self).__getitem__(key)
         except KeyError: # return a dummy object
-            return Channel(key)
+            channel = Channel(key)
+            channel.__parent__ = self
+            return channel
+    
+    def __setitem__(self, key, value):
+        ret = super(ChannelContainer, self).__setitem__(key, value)
+        self.data[key].__parent__ = self
+        return ret
     
     def is_stored(self, key):
         """ Determines if `key` is persistent or has been dynamically generated
+            >>> from mint.repoze.models import Channel
             >>> container = ChannelContainer()
             >>> container[u'foo']
             <Channel object>
             >>> container.is_stored(u'foo')
             False
-            >>> container[u'foo'] = object()
+            >>> container[u'foo'] = Channel(u'foo')
             >>> container.is_stored(u'foo')
             True
             

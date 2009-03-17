@@ -140,9 +140,9 @@ def video(context, request):
 @bfg_view(for_=IChannel, permission='view')
 @with_widgets('auth_widget')
 def channel(context, request):
-    p_root = getUtility(IRootFactory).get_root(request.environ)
-    videos = utility_finder(p_root, 'videos')
-    videos = [render_view(video,request,'video_listing_widget') for video in context.get_listings(videos)]
+    #p_root = getUtility(IRootFactory).get_root(request.environ)
+    #videos = utility_finder(p_root, 'videos')
+    videos = [render_view(video,request,'video_listing_widget') for video in context.get_listings()]#videos)]
     title = context.title or context.__name__.title()
     return ResponseTemplate('pages/channel.html', context=context, videos=videos, title=title)
 

@@ -24,7 +24,7 @@ class PersistentUtilityFinder(object):
     def __call__(self, context, utility_name):
         if utility_name not in self._utilities:
             raise KeyError('`%s` is not a registered utility' % utility_name)
-        return find_model(context, self._utilities[utility_name])
+        return find_model(find_root(context), self._utilities[utility_name])
     
     def register_utility(self, name, path):
         """ A utility object to store and retrieve paths to persistent utilities
@@ -99,6 +99,7 @@ def init_test_root(zodb_root, base):
         mint_root['channels'] = ChannelContainer()
         mint_root['banners'] = AdSpaceContainer()
         mint_root['users'] = UserContainer()
+        mint_root['channels'].__parent__ = mint_root
         for user in users.values():
             mint_root['users'].add_user(**user)
         zodb_root[base] = mint_root
