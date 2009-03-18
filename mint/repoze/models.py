@@ -5,6 +5,7 @@ try:
     from hashlib import md5
 except ImportError:
     from md5 import md5
+from datetime import datetime
 
 from zope.interface import implements, Interface
 from zope.interface.interfaces import IInterface
@@ -16,6 +17,7 @@ from mint.repoze.interfaces import IVideo, IVideoContainer
 from mint.repoze.interfaces import IChannel, IChannelContainer
 from mint.repoze.interfaces import IAdvert, IAdSpace, IAdSpaceContainer
 from mint.repoze.interfaces import IUser, IUserContainer
+from mint.repoze.interfaces import ISyndication
 from persistent import Persistent
 from persistent.mapping import PersistentMapping
 from persistent.dict import PersistentDict
@@ -106,14 +108,38 @@ class BaseContainer(PersistentMapping):
         [u'bar']
         
     """
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         self.data = PersistentDict()
     
     def __getitem__(self, key):
         return self.data.__getitem__(key)
     
     def __setitem__(self, key, value):
-        return self.data.__setitem__(key, value)
+        """ Acts as a proxy to the self.data PersistentDict. As it is a
+            persistent object, it will also try and assign the __parent__
+            attrubute to any object stored through this interface.
+            
+            >>> container = BaseContainer()
+            >>> container.__setitem__('foo', 'bar')
+            >>> 'foo' in container.data
+            True
+            >>> container['foo'].__parent__ # doctest: +ELLIPSIS
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'str' object has no attribute '__parent__'
+            >>> class Child(object):
+            ...     __parent__ = None
+            ...
+            >>> container.__setitem__('baz', Child())
+            >>> 'baz' in container.data
+            True
+            >>> container['baz'].__parent__ == container
+            True
+        """
+        ret = self.data.__setitem__(key, value)
+        try: self.data[key].__parent__ = self
+        except: pass
+        return ret
     
     def items(self):
         return self.data.items()
@@ -124,7 +150,56 @@ class BaseContainer(PersistentMapping):
     def values(self):
         return self.data.values()
     
+    def update(self, _data={}, **kwargs):
+        """ BaseContainers can be updated much the same as any Python dictionary.
+            
+            By passing another mapping object:
+            
+            >>> container = BaseContainer()
+            >>> container.update({'foo':'bar'})
+            
+            By passing a list of iterables with length 2:
+            
+            >>> container = BaseContainer()
+            >>> container.update([('foo', 'bar'),])
+            
+            By passing a set of keyword arguments:
+            
+            >>> container = BaseContainer()
+            >>> container.update(foo='bar')
+            
+        """
+        if kwargs:
+            for k,v in kwargs.items():
+                self.__setitem__(k,v)
+            return
+        elif isinstance(_data, dict):
+            for k,v in _data.items():
+                self.__setitem__(k,v)
+        elif isinstance(_data, dict):
+            for k,v in _data:
+                self.__setitem__(k,v)
+            
 
+class SyndicationMetadata(dict):
+    def __init__(self, _dict=None, **kwargs):
+        self.update({
+            u'title': u'',
+            u'summary': u'For more information visit http://www.green.tv/',
+            u'description': u'UNEP broadband TV channel for environmental films',
+            u'link': u'http://www.green.tv',
+            u'language': u'en',
+            u'image_url': u'http://static.green.tv/static/images/greentv/logo/greentv.gif',
+            u'itunes_image_url': u'http://static.green.tv/static/images/tags/default.jpg',
+            u'copyright': u'(c) 2005-2009 green.tv',
+            u'owner_name': u'green.tv',
+            u'owner_email': u'info_NOSPAM@green.tv',
+            u'categories': [u'Science', u'Movies &amp; Television'],
+        })
+        if _dict:
+            self.update(dict)
+        if kwargs:
+            self.update(kwargs)
 
 ## Models
 
@@ -155,7 +230,9 @@ class Video(Persistent):
             (Allow, 'admin', 'edit'),
             ]
     
-    implements(IVideo,ILocation)
+    implements(IVideo, ILocation)
+    
+    __name__ = __parent__ = None
     
     def __init__(self, uid, name, description, tags, encodes={}, static_dir='var/videos/'):
         """ Receives encodes in the form:
@@ -169,6 +246,7 @@ class Video(Persistent):
         self.name = name
         self.description = description
         self.tags = tags
+        self.published_date = datetime.now()
         # save file and keep reference
         self.static_dir = static_dir
         try:
@@ -177,7 +255,7 @@ class Video(Persistent):
             pass
         self.encodes = PersistentDict()
         for k,v in encodes.items():
-            self.encodes[k] = self.save_encode(v,k)
+            self.encodes.__setitem__(k, self.save_encode(v,k))
     
     def save_encode(self, stream, encode='mp4', dst=None, buffer_size=16384):
         if dst is None:
@@ -195,6 +273,10 @@ class Video(Persistent):
             dst_file.close()
             ##TODO: gather extra info - length/dims/bitrate etc
             return dst
+    
+    def get_path_to_encode(self, encode='mp4'):
+        ##TODO: dynamic url to static
+        return u'http://localhost:6543/videos/%s/%s.%s' % (self.__name__, self.__name__, encode)
     
     def __repr__(self):
         return u'<Video name=%s>' % self.name
@@ -225,8 +307,9 @@ class VideoContainer(BaseContainer):
             (Allow, 'contributor', 'edit'),
             ]
     
-    implements(IVideoContainer,ILocation)
+    implements(IVideoContainer, ILocation, ISyndication)
     
+    __name__ = __parent__ = None
     encode_dir = 'var/videos/'
     
     def __init__(self, *args, **kwargs):
@@ -235,6 +318,7 @@ class VideoContainer(BaseContainer):
             self.add_video(*data)
         for v in kwargs.values():
             pass
+        self.metadata = SyndicationMetadata(title=u'green.tv - everything')
     
     def __repr__(self):
         return u'<VideoContainer object>'
@@ -254,11 +338,11 @@ class VideoContainer(BaseContainer):
         while uid in self:
             uid = '%s_%03d' % (uid, counter)
             counter += 1
-        self.data[uid] = Video(uid, name, description, tags, encodes, self.encode_dir)
+        self.__setitem__(uid, Video(uid, name, description, tags, encodes, self.encode_dir))
         import transaction
         transaction.commit()
     
-    def get_listings(self, videos=None):
+    def get_listings(self):
         """ Returns an iterable of Video objects to be used in a syndication feed
             
             >>> from mint.repoze.test.data import video_container
@@ -266,8 +350,7 @@ class VideoContainer(BaseContainer):
             >>> listings[0] == video_container.data.values()[0]
             True
         """
-        if videos is None:
-            videos = self.data
+        videos = self.data
         return [video for video in videos.values() if IVideo.providedBy(video)]
     
 
@@ -279,7 +362,7 @@ class Channel(Persistent):
         (Allow, 'admin', 'edit'),
         ]
     
-    implements(IChannel)
+    implements(IChannel, ISyndication)
     
     __name__ = __parent__ = None
     title = u''
@@ -289,8 +372,9 @@ class Channel(Persistent):
     def __init__(self, name, title=u'', description=u'', default_video=u''):
         self.__name__ = name.replace(' ', '').lower()
         self.title, self.descrption, self.default_video = title, description, default_video
+        self.metadata = SyndicationMetadata(title=u'green.tv - %s' % self.title)
     
-    def get_listings(self, videos=None):
+    def get_listings(self):
         from mint.repoze.root import utility_finder
         videos = utility_finder(self, 'videos')
         return [video for video in videos.values() if self.__name__ in video.tags]
@@ -320,11 +404,6 @@ class ChannelContainer(BaseContainer):
             channel = Channel(key)
             channel.__parent__ = self
             return channel
-    
-    def __setitem__(self, key, value):
-        ret = super(ChannelContainer, self).__setitem__(key, value)
-        self.data[key].__parent__ = self
-        return ret
     
     def is_stored(self, key):
         """ Determines if `key` is persistent or has been dynamically generated

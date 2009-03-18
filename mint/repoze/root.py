@@ -78,9 +78,13 @@ def init_zodb_root(zodb_root, base):
         log.debug('initialising real root in db')
         mint_root = Root()
         mint_root['videos'] = VideoContainer()
+        mint_root['videos'].__parent__ = mint_root
         mint_root['channels'] = ChannelContainer()
+        mint_root['channels'].__parent__ = mint_root
         mint_root['banners'] = AdSpaceContainer()
+        mint_root['banners'].__parent__ = mint_root
         mint_root['users'] = UserContainer()
+        mint_root['users'].__parent__ = mint_root
         mint_root['users'].add_user(**users['admin'])
         zodb_root[base] = mint_root
         import transaction
@@ -96,10 +100,13 @@ def init_test_root(zodb_root, base):
         log.debug('initialising test root in db')
         mint_root = Root()
         mint_root['videos'] = video_container
+        mint_root['videos'].__parent__ = mint_root
         mint_root['channels'] = ChannelContainer()
-        mint_root['banners'] = AdSpaceContainer()
-        mint_root['users'] = UserContainer()
         mint_root['channels'].__parent__ = mint_root
+        mint_root['banners'] = AdSpaceContainer()
+        mint_root['banners'].__parent__ = mint_root
+        mint_root['users'] = UserContainer()
+        mint_root['users'].__parent__ = mint_root
         for user in users.values():
             mint_root['users'].add_user(**user)
         zodb_root[base] = mint_root

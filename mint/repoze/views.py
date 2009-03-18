@@ -150,11 +150,11 @@ def channel(context, request):
 def user_profile(context, request):
     return ResponseTemplate('pages/user/profile.html', context=context)
 
-@bfg_view(name='itunes.rss', for_=ISyndication)
+@bfg_view(name='podcast.xml', for_=ISyndication)
 def rss_feed(context, request):
+    metadata = context.metadata
     items = context.get_listings()
-    metadata = {}
-    return ResponseTemplate('pages/feed.rss', metadata=metadata, items=items)
+    return ResponseTemplate('pages/podcast.xml', metadata=metadata, items=items)
 
 
 ## Admin Views

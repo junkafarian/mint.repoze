@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" >
+<channel>
+
+  {% if 'title' in metadata %}<title>{{ metadata['title'] }}</title>{% endif %}
+  {% if 'link' in metadata %}<link>{{ metadata['link'] }}</link>{% endif %}
+  {% if 'description' in metadata %}<description>{{ metadata['description'] }}</description>{% endif %}
+  {% if 'language' in metadata %}<language>{{ metadata['language'] }}</language>{% endif %}
+  {% if 'image_url' in metadata -%}
+  <image>
+        <url>{{ metadata['image_url'] }}</url>
+        {% if 'title' in metadata %}<title>{{ metadata['title'] }}</title>{% endif %}
+        {% if 'link' in metadata %}<link>{{ metadata['link'] }}</link>{% endif %}
+  </image>
+  {%- endif %}
+  {% if 'copyright' in metadata %}<copyright>{{ metadata['copyright'] }}</copyright>{% endif %}
+  <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+  <generator>large blue RSS Generator</generator>
+
+  {% if 'description' in metadata %}<itunes:subtitle>{{ metadata['description'] }}</itunes:subtitle>{% endif %}
+  {% if 'summary' in metadata %}<itunes:summary>{{ metadata['summary'] }}</itunes:summary>{% endif %}
+
+  {% if 'owner_name' in metadata and 'owner_email' in metadata -%}
+  <itunes:owner>
+        <itunes:name>{{ metadata['owner_name'] }}</itunes:name>
+        <itunes:email>{{ metadata['owner_email'] }}</itunes:email>
+  </itunes:owner>
+  {%- endif %}
+
+  {% if 'description' in metadata %}<itunes:image href="{{ metadata['itunes_image_url'] }}" />{% endif %}
+
+  {% if 'categories' in metadata %}{% for category in metadata['categories'] -%}
+  <itunes:category text="{{ category }}" />
+  {%- endfor %}{% endif %}
+
+  <itunes:explicit>no</itunes:explicit>
+  
+  {% for item in items -%}
+  <item>
+
+        <title>{{ item.name }}</title>
+        <guid isPermaLink="false">/{{ item.__name__ }}</guid>
+        <link>/videos/{{ item.__name__ }}</link>
+        <author>{{ item.author }}</author>
+        <pubDate>{{ item.published_date.strftime("%a, %d %b %Y %H:%M:%S GMT") }}</pubDate>
+        <description>{{ item.description }}</description>
+        <enclosure url="{{ item.get_path_to_encode('m4v') }}"
+                           length="0"
+                           type="video/x-m4v" />
+        <itunes:duration>00:00</itunes:duration>
+        <itunes:keywords>{{ ', '.join(item.tags) }}</itunes:keywords>
+  </item>
+  {%- endfor %}
+
+</channel>
+</rss>

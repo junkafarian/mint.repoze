@@ -79,7 +79,9 @@ class IUserContainer(Interface):
         """adds a new user to the container"""
 
 class ISyndication(Interface):
-    def get_listings(videos):
+    def get_listings():
         """Returns an iterable of items to be used in a syndication feed"""
     
+    def get_metadata():
+        """Returns a mapping of key/value pairs reflecting generic channel metadata"""
 
