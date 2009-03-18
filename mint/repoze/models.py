@@ -203,7 +203,41 @@ class SyndicationMetadata(dict):
 
 ## Models
 
-class Video(Persistent):
+class Encode(Persistent):
+    
+    __name__ = __parent__ = None
+    
+    def __init__(self, encode='mp4', path=None):
+        self.__name__ = encode
+        self.path = path
+        
+        self.metadata = {
+            'length': 0,
+            'size': 0,
+            'mimetype': u'',
+            'bitrate': 0,
+            'width': 0,
+            'height': 0,
+        }
+    
+    def save(self, stream, buffer_size=16384):
+        if self.path is None:
+            self.path = join(self.__parent__.static_dir, self.__name__, '%s.%s' % (self.__name__, self.__name__))
+        if not isinstance(dst, basestring):
+            raise TypeError('Destination should be a string not a %s' % type(dst))
+        dst_file = file(self.path, 'wb')
+        try:
+            copyfileobj(stream, dst_file, buffer_size)
+        except:
+            dst_file.close()
+            return None
+        else:
+            dst_file.close()
+            ##TODO: gather extra info - length/dims/bitrate etc
+            return dst
+    
+
+class Video(BaseContainer):
     """ A simple Video object
         
         >>> from mint.repoze.interfaces import IVideo
@@ -242,6 +276,7 @@ class Video(Persistent):
                     ...
                 }
         """
+        super(Video, self).__init__()
         self.__name__ = uid
         self.name = name
         self.description = description
@@ -253,9 +288,13 @@ class Video(Persistent):
             makedirs(join(self.static_dir, self.__name__))
         except OSError:
             pass
-        self.encodes = PersistentDict()
         for k,v in encodes.items():
-            self.encodes.__setitem__(k, self.save_encode(v,k))
+            self.data.__setitem__(k, Encode(k))
+            self.data[k].save(v)
+    
+    @property
+    def encodes(self):
+        return self.data
     
     def save_encode(self, stream, encode='mp4', dst=None, buffer_size=16384):
         if dst is None:

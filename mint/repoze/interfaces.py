@@ -12,6 +12,11 @@ class IUtilityFinder(Interface):
         """returns a list of utility ids"""
     
 
+class IEncode(Interface):
+    
+    __name__ = TextLine(title=u'Encode format')
+    path = TextLine(title=u'Path to encode')
+
 class IVideo(Interface):
     
     name = TextLine(title=u'Video Name')
