@@ -47,7 +47,6 @@ class PersistentUtilityFinder(object):
         return self._utilities.keys()
     
 
-global utility_finder
 utility_finder = PersistentUtilityFinder()
 
 class Root(PersistentMapping):

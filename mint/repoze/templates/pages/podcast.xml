@@ -41,7 +41,7 @@
         <title>{{ item.name }}</title>
         <guid isPermaLink="false">/{{ item.__name__ }}</guid>
         <link>/videos/{{ item.__name__ }}</link>
-        <author>{{ item.author }}</author>
+        <author>{{ item.published_by }}</author>
         <pubDate>{{ item.published_date.strftime("%a, %d %b %Y %H:%M:%S GMT") }}</pubDate>
         <description>{{ item.description }}</description>
         <enclosure url="{{ item.get_path_to_encode('m4v') }}"
