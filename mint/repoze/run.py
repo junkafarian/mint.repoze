@@ -20,15 +20,16 @@ log = logging.getLogger('mint.root')
 #default_zodb_uri = 'file://' + abspath(default_zodb_uri)
 
 default_zodb_uri = 'zeo://localhost:8100'
+required_config = ['zodb_uri', 'zodb_base', 'video_dir']
 
 class MintApp:
     """ Application object
         
         >>> from mint.repoze.run import default_zodb_uri
-        >>> app = MintApp(zodb_base=u'test_mint', zodb_uri=None)
+        >>> app = MintApp(zodb_base=u'test_mint', zodb_uri=None, video_dir='var/videos')
         >>> app.options['zodb_uri'] == default_zodb_uri
         True
-        >>> app = MintApp(zodb_base=u'test_mint', zodb_uri=u'file:///tmp/test.db')
+        >>> app = MintApp(zodb_base=u'test_mint', zodb_uri=u'file:///tmp/test.db', video_dir='var/videos')
         >>> app.options['zodb_uri'] == u'file:///tmp/test.db'
         True
     """
@@ -40,6 +41,9 @@ class MintApp:
         log.info(kw['zodb_uri'])
         self.options = get_options(kw)
         self.options.update(kw)
+        for option in required_config:
+            if option not in self.options.keys(): raise LookupError('Missing required config item: %s' % option)
+        mint.repoze.CONFIG.update(self.options)
         self.get_root = self._get_root()
     
     def _get_root(self):
@@ -75,6 +79,7 @@ class MintApp:
         return self.app
     
     def __call__(self, environ, start_response):
+        environ['mint'] = self.options
         return self.app(environ, start_response)
     
     def __repr__(self):
@@ -84,8 +89,8 @@ class MintApp:
 def makeapp(global_config, **kw):
     """ This function provides an interface to the MintApp WSGI application
         >>> from mint.repoze.run import MintApp, makeapp, default_zodb_uri
-        >>> testapp = makeapp(global_config={}, zodb_uri=default_zodb_uri, zodb_base='test_mint')
-        >>> repr(testapp) == repr(MintApp(zodb_uri=default_zodb_uri, zodb_base='test_mint'))
+        >>> testapp = makeapp(global_config={}, zodb_uri=default_zodb_uri, zodb_base='test_mint', video_dir='var/videos')
+        >>> repr(testapp) == repr(MintApp(zodb_uri=default_zodb_uri, zodb_base='test_mint', video_dir='var/videos'))
         True
     """
     return MintApp(**kw)

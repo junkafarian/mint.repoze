@@ -12,19 +12,18 @@ from zope.interface.interfaces import IInterface
 from repoze.bfg.security import Everyone, Allow, Deny
 from repoze.bfg.interfaces import ILocation
 from repoze.bfg.traversal import model_path_tuple
+from persistent import Persistent
+from persistent.mapping import PersistentMapping
+from persistent.dict import PersistentDict
 
 from mint.repoze.interfaces import IVideo, IVideoContainer
 from mint.repoze.interfaces import IChannel, IChannelContainer
 from mint.repoze.interfaces import IAdvert, IAdSpace, IAdSpaceContainer
 from mint.repoze.interfaces import IUser, IUserContainer
 from mint.repoze.interfaces import ISyndication
-from persistent import Persistent
-from persistent.mapping import PersistentMapping
-from persistent.dict import PersistentDict
+from mint.repoze import CONFIG
 
 import logging
-
-VIDEO_DIR = u'var/videos/'
 
 class AssertingList(list):
     """ A convenience class to assert added objects provide a specified interface
@@ -227,7 +226,7 @@ class Encode(Persistent):
     
     def save(self, stream, buffer_size=16384):
         if self.path is None:
-            self.path = join(VIDEO_DIR, self.__name__, '%s.%s' % (self.__name__, self.__name__))
+            self.path = join(CONFIG['video_dir'], self.__name__, '%s.%s' % (self.__name__, self.__name__))
         if not isinstance(dst, basestring):
             raise TypeError('Destination should be a string not a %s' % type(dst))
         dst_file = file(self.path, 'wb')
