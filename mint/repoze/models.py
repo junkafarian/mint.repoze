@@ -268,10 +268,12 @@ class Video(BaseContainer):
             (Allow, 'admin', 'edit'),
             ]
     
-    implements(IVideo, ILocation)
+    implements(IVideo, ILocation, IStingable)
     
     __name__ = __parent__ = None
     published_by = u''
+    pre_roll = u''
+    post_roll = u''
     
     def __init__(self, uid, name, description, tags, encodes={}, static_dir='var/videos/'):
         """ Receives encodes in the form:
@@ -296,6 +298,9 @@ class Video(BaseContainer):
         for k,v in encodes.items():
             self.__setitem__(k, Encode(k,v))
     
+    def __repr__(self):
+        return u'<Video name=%s>' % self.name
+    
     @property
     def encodes(self):
         return self.data
@@ -304,8 +309,21 @@ class Video(BaseContainer):
         ##TODO: dynamic url to static
         return u'http://localhost:6543/videos/%s/%s.%s' % (self.__name__, self.__name__, encode)
     
-    def __repr__(self):
-        return u'<Video name=%s>' % self.name
+    def get_playlist(pre=[], post=[]):
+        playlist = [self.__name__]
+        if self.pre_roll:
+            if CONFIG.get('add_parent_stings') == 'after':
+                pre = [self.pre_roll] + pre
+            else:
+                pre = pre + [self.pre_roll]
+        playlist = pre + playlist
+        if self.post_roll:
+            if CONFIG.get('add_parent_stings') == 'after':
+                post = post + [self.post_roll]
+            else:
+                post = [self.post_roll] + post
+        playlist = post + playlist
+        return playlist
     
 
 class VideoContainer(BaseContainer):
@@ -333,7 +351,7 @@ class VideoContainer(BaseContainer):
             (Allow, 'contributor', 'edit'),
             ]
     
-    implements(IVideoContainer, ILocation, ISyndication)
+    implements(IVideoContainer, ILocation, ISyndication, IStingable)
     
     __name__ = __parent__ = None
     encode_dir = 'var/videos/'
@@ -378,6 +396,22 @@ class VideoContainer(BaseContainer):
         """
         videos = self.data
         return [video for video in videos.values() if IVideo.providedBy(video)]
+    
+    def get_playlist(pre=[], post=[]):
+        playlist = [self.__name__]
+        if self.pre_roll:
+            if CONFIG.get('add_parent_stings') == 'after':
+                pre = [self.pre_roll] + pre
+            else:
+                pre = pre + [self.pre_roll]
+        playlist = pre + playlist
+        if self.post_roll:
+            if CONFIG.get('add_parent_stings') == 'after':
+                post = post + [self.post_roll]
+            else:
+                post = [self.post_roll] + post
+        playlist = post + playlist
+        return playlist
     
 
 
