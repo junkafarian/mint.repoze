@@ -91,7 +91,7 @@ class ISyndication(Interface):
         """Returns a mapping of key/value pairs reflecting generic channel metadata"""
 
 class IStingable(Interface):
-    def get_playlist(*aditional):
+    def get_playlist(additional_pre=[], additional_post=[]):
         """returns an iterable of Video Items"""
     
     pre_roll = TextLine(title=u"Pre Roll sting")

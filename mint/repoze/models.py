@@ -20,7 +20,7 @@ from mint.repoze.interfaces import IVideo, IVideoContainer
 from mint.repoze.interfaces import IChannel, IChannelContainer
 from mint.repoze.interfaces import IAdvert, IAdSpace, IAdSpaceContainer
 from mint.repoze.interfaces import IUser, IUserContainer
-from mint.repoze.interfaces import ISyndication
+from mint.repoze.interfaces import ISyndication, IStingable
 from mint.repoze import CONFIG
 
 import logging
@@ -355,6 +355,8 @@ class VideoContainer(BaseContainer):
     
     __name__ = __parent__ = None
     encode_dir = 'var/videos/'
+    pre_roll = u''
+    post_roll = u''
     
     def __init__(self, *args, **kwargs):
         super(VideoContainer, self).__init__()
@@ -422,12 +424,14 @@ class Channel(Persistent):
         (Allow, 'admin', 'edit'),
         ]
     
-    implements(IChannel, ISyndication)
+    implements(IChannel, ISyndication, IStingable)
     
     __name__ = __parent__ = None
     title = u''
     description = u''
     default_video = u''
+    pre_roll = u''
+    post_roll = u''
     
     def __init__(self, name, title=u'', description=u'', default_video=u''):
         self.__name__ = name.replace(' ', '').lower()
@@ -441,6 +445,22 @@ class Channel(Persistent):
     
     def __repr__(self):
         return u'<Channel object>'
+    
+    def get_playlist(pre=[], post=[]):
+        playlist = [self.__name__]
+        if self.pre_roll:
+            if CONFIG.get('add_parent_stings') == 'after':
+                pre = [self.pre_roll] + pre
+            else:
+                pre = pre + [self.pre_roll]
+        playlist = pre + playlist
+        if self.post_roll:
+            if CONFIG.get('add_parent_stings') == 'after':
+                post = post + [self.post_roll]
+            else:
+                post = [self.post_roll] + post
+        playlist = post + playlist
+        return playlist
     
 
 class ChannelContainer(BaseContainer):
