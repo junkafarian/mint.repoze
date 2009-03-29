@@ -95,4 +95,4 @@ class IStingable(Interface):
         """returns an iterable of Video Items"""
     
     pre_roll = TextLine(title=u"Pre Roll sting")
-    post_roll = TextLine(title=u"Post Roll sting")
+    end_roll = TextLine(title=u"End Roll sting")

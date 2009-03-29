@@ -245,7 +245,6 @@ class Video(BaseContainer):
     """ A simple Video object
         
         >>> from mint.repoze.interfaces import IVideo
-        >>> from mint.repoze.models import Video
         >>> ob = Video(uid=u'name', name=u'name', description=u'description', tags=[u'tag1', u'tag2', u'tag3'])
         >>> ob.name == u'name'
         True
@@ -273,7 +272,7 @@ class Video(BaseContainer):
     __name__ = __parent__ = None
     published_by = u''
     pre_roll = u''
-    post_roll = u''
+    end_roll = u''
     
     def __init__(self, uid, name, description, tags, encodes={}, static_dir='var/videos/'):
         """ Receives encodes in the form:
@@ -309,7 +308,25 @@ class Video(BaseContainer):
         ##TODO: dynamic url to static
         return u'http://localhost:6543/videos/%s/%s.%s' % (self.__name__, self.__name__, encode)
     
-    def get_playlist(pre=[], post=[]):
+    def get_playlist(self, pre=[], post=[]):
+        """ Returns a list of videos to play including pre/end rolls
+            
+            >>> ob = Video(uid=u'video1', name=u'Video 1', description=u'description', tags=[u'tag1', u'tag2', u'tag3'])
+            >>> ob.get_playlist()
+            [u'video1']
+            >>> ob.pre_roll = u'fake_video1'
+            >>> ob.get_playlist()
+            [u'fake_video1', u'video1']
+            >>> ob.end_roll = u'fake_video2'
+            >>> ob.get_playlist()
+            [u'fake_video1', u'video1', u'fake_video2']
+            
+            It also allows additional videos to be included:
+            
+            >>> ob.get_playlist([u'pre1'], [u'post1'])
+            [u'pre1', u'fake_video1', u'video1', u'fake_video2', u'post1']
+            
+        """
         playlist = [self.__name__]
         if self.pre_roll:
             if CONFIG.get('add_parent_stings') == 'after':
@@ -317,12 +334,12 @@ class Video(BaseContainer):
             else:
                 pre = pre + [self.pre_roll]
         playlist = pre + playlist
-        if self.post_roll:
+        if self.end_roll:
             if CONFIG.get('add_parent_stings') == 'after':
-                post = post + [self.post_roll]
+                post = post + [self.end_roll]
             else:
-                post = [self.post_roll] + post
-        playlist = post + playlist
+                post = [self.end_roll] + post
+        playlist = playlist + post
         return playlist
     
 
@@ -356,7 +373,7 @@ class VideoContainer(BaseContainer):
     __name__ = __parent__ = None
     encode_dir = 'var/videos/'
     pre_roll = u''
-    post_roll = u''
+    end_roll = u''
     
     def __init__(self, *args, **kwargs):
         super(VideoContainer, self).__init__()
@@ -399,7 +416,7 @@ class VideoContainer(BaseContainer):
         videos = self.data
         return [video for video in videos.values() if IVideo.providedBy(video)]
     
-    def get_playlist(pre=[], post=[]):
+    def get_playlist(self, pre=[], post=[]):
         playlist = [self.__name__]
         if self.pre_roll:
             if CONFIG.get('add_parent_stings') == 'after':
@@ -407,11 +424,11 @@ class VideoContainer(BaseContainer):
             else:
                 pre = pre + [self.pre_roll]
         playlist = pre + playlist
-        if self.post_roll:
+        if self.end_roll:
             if CONFIG.get('add_parent_stings') == 'after':
-                post = post + [self.post_roll]
+                post = post + [self.end_roll]
             else:
-                post = [self.post_roll] + post
+                post = [self.end_roll] + post
         playlist = post + playlist
         return playlist
     
@@ -431,7 +448,7 @@ class Channel(Persistent):
     description = u''
     default_video = u''
     pre_roll = u''
-    post_roll = u''
+    end_roll = u''
     
     def __init__(self, name, title=u'', description=u'', default_video=u''):
         self.__name__ = name.replace(' ', '').lower()
@@ -446,7 +463,7 @@ class Channel(Persistent):
     def __repr__(self):
         return u'<Channel object>'
     
-    def get_playlist(pre=[], post=[]):
+    def get_playlist(self, pre=[], post=[]):
         playlist = [self.__name__]
         if self.pre_roll:
             if CONFIG.get('add_parent_stings') == 'after':
@@ -454,11 +471,11 @@ class Channel(Persistent):
             else:
                 pre = pre + [self.pre_roll]
         playlist = pre + playlist
-        if self.post_roll:
+        if self.end_roll:
             if CONFIG.get('add_parent_stings') == 'after':
-                post = post + [self.post_roll]
+                post = post + [self.end_roll]
             else:
-                post = [self.post_roll] + post
+                post = [self.end_roll] + post
         playlist = post + playlist
         return playlist
     

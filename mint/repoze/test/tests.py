@@ -359,6 +359,28 @@ def test_add_video():
     
 
 @with_setup(login_as_admin,logout)
+def test_edit_video():
+    """Publish a new video through the web interface"""
+    res = app.get('/videos/testvid1/edit.html')
+    assert_true(
+        '200' in res.status,
+        u'edit video url should be available'
+    )
+    form = res.form
+    print form['sting.pre_roll'].options
+    #if 'Intro' in form['sting.pre_roll'].options:
+    form.select('sting.pre_roll', 'intro')
+        #form['sting.pre_roll'].value = 'Intro'
+    
+    res = form.submit()
+    print form['sting.pre_roll'].value
+    assert_true(
+        'intro' == form['sting.pre_roll'].value,
+        u'Intro should be set as the pre-roll'
+    )
+    
+
+@with_setup(login_as_admin,logout)
 def test_set_default_video():
     res = app.get('/set_default_video.html')
     form = res.form

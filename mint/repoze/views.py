@@ -214,7 +214,7 @@ def edit_channel_action(context, request):
 
 @bfg_view(name='add_video.html', for_=IVideoContainer, request_type=IGETRequest, permission='edit')
 def add_video_form(context, request):
-    return ResponseTemplate('pages/add_video.html', message='Please complete the form below')
+    return ResponseTemplate('pages/add_video.html', message='Please complete the form below', context=context, sting_videos=[video for video in context])
 
 @bfg_view(name='add_video.html', for_=IVideoContainer, request_type=IPOSTRequest, permission='edit')
 def add_video_action(context, request):
@@ -223,7 +223,7 @@ def add_video_action(context, request):
     description = form.get('video.description')
     tags = form.get('video.tags')
     if not (name and description and tags):
-        return ResponseTemplate('pages/add_video.html', message='Missing fields')
+        return ResponseTemplate('pages/add_video.html', message='Missing fields', context=context, sting_videos=[video for video in context])
     encodes = {}
     f = form.get('video.file')
     if not isinstance(f, basestring) and f is not None:
@@ -231,7 +231,31 @@ def add_video_action(context, request):
     context.add_video(name, description, tags.replace(' ','').split(','), encodes)
     import transaction
     transaction.commit()
-    return ResponseTemplate('pages/add_video.html', message='Video successfully added')
+    return ResponseTemplate('pages/add_video.html', message='Video successfully added', context=context, sting_videos=[video for video in context])
+
+@bfg_view(name='edit.html', for_=IVideo, request_type=IGETRequest, permission='edit')
+def edit_video_form(context, request):
+    sting_videos = [('', 'No Video')]
+    sting_videos.extend([(video.__name__, video.name) for video in context.__parent__.values()])
+    return ResponseTemplate('pages/edit_video.html', message='Please complete the form below', context=context, sting_videos=sting_videos)
+
+@bfg_view(name='edit.html', for_=IVideo, request_type=IPOSTRequest, permission='edit')
+def edit_video_action(context, request):
+    form = request.POST
+    name = form.get('video.name')
+    description = form.get('video.description')
+    tags = form.get('video.tags')
+    sting_videos = [('', 'No Video')]
+    sting_videos.extend([(video.__name__, video.name) for video in context.__parent__.values()])
+    if not (name and description and tags):
+        return ResponseTemplate('pages/edit_video.html', message='Missing fields', context=context, sting_videos=sting_videos)
+    context.name = name
+    context.description = description
+    context.tags = tags.replace(' ','').split(',')
+    context.pre_roll = form.get('sting.pre_roll', '')
+    context.end_roll = form.get('sting.end_roll', '')
+    transaction.commit()
+    return ResponseTemplate('pages/edit_video.html', message='Video successfully updated', context=context, sting_videos=sting_videos)
 
 @bfg_view(name='add.html', request_type=IGETRequest, for_=IAdSpaceContainer)
 def add_adspace_form(context, request):
