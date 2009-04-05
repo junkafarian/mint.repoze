@@ -1,0 +1,3 @@
+{% from 'widgets/form_fields.html' import tuple_select as select %}
+{{ select('sting.pre_roll', 'Pre Roll Video', sting_videos, default=context.pre_roll) }}
+{{ select('sting.end_roll', 'End Roll Video', sting_videos, default=context.end_roll) }}

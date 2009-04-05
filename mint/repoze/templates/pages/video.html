@@ -3,7 +3,9 @@
 {% block body %}
   <h1>{{context.name}}</h1>
   
-  <div class="videoplayer" id="{{context.__name__}}"></div>
+  <div class="videoplayer" id="{{context.__name__}}">
+    {{ playlist }}
+  </div>
   <div class="full-description" id="{{context.__name__}}-description">{{context.description}}</div>
   {% if 'tags_widget' in widgets %}{{ widgets['tags_widget'] }}{% endif %}
 {% endblock %}

@@ -1,0 +1,34 @@
+{% macro input(id, label, value='', compulsory=False) -%}
+<label for="{{ id }}">{{ label }}{{ compulsory and ' *' or '' }}</label>
+<input type="text" name="{{ id }}" value="{{ value }}" id="{{ id }}" /><span class="err-text">{{ errors[id] }}</span>
+{%- endmacro %}
+
+{% macro textarea(id, label, compulsory=False) -%}
+<label for="{{ id }}">{{ label }}{{ compulsory and ' *' or '' }}</label><textarea type="text" rows="4" cols="40" name="{{ id }}" id="{{ id }}">{{ data[id] }}</textarea><span class="err-text">{{ errors[id] }}</span>
+{%- endmacro %}
+
+{% macro hidden(id, label=None) -%}
+<input type="hidden" name="{{ id }}" value="{{ data[id] }}" id="{{ id }}" />
+{%- endmacro %}
+
+{% macro password(id, label, compulsory=False) -%}
+<label for="{{ id }}">{{ label }}{{ compulsory and ' *' or '' }}</label><input type="password" name="{{ id }}" value="{{ data[id] }}" id="{{ id }}" /><span class="err-text">{{ errors[id] }}</span>
+{%- endmacro %}
+
+{% macro str_select(id, label, choices, default=None, compulsory=False) -%}
+<label for="{{ id }}">{{ label }}{{ compulsory and ' *' or '' }}</label>
+<select name="{{ id }}" id="{{ id }}">
+{% for option in choices %}
+  <option value="{{ option }}" {{ default == option and 'selected="True"' or '' }}>{{ option }}</option>
+{% endfor %}
+</select>
+{%- endmacro %}
+
+{% macro tuple_select(id, label, choices, default=None, compulsory=False) -%}
+<label for="{{ id }}">{{ label }}{{ compulsory and ' *' or '' }}</label>
+<select name="{{ id }}" id="{{ id }}">
+{% for option in choices %}
+  <option value="{{ option[0] }}" {{ default == option[0] and 'selected="True"' or '' }}>{{ option[1] }}</option>
+{% endfor %}
+</select>
+{%- endmacro %}

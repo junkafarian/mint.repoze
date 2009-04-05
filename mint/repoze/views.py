@@ -135,7 +135,17 @@ def video_redirect(context, request):
 @bfg_view(for_=IVideo, permission='view')
 @with_widgets('auth_widget', 'tags_widget')
 def video(context, request):
-    return ResponseTemplate('pages/video.html', context=context)
+    channels = utility_finder(context, 'channels')
+    pre = []
+    post = []
+    for tag in context.tags:
+        channel = channels[tag]
+        if channel.pre_roll:
+            pre.append(channel.pre_roll)
+        if channel.end_roll:
+            post.append(channel.end_roll)
+    playlist = context.get_playlist(pre, post)
+    return ResponseTemplate('pages/video.html', context=context, playlist=playlist)
 
 @bfg_view(for_=IChannel, permission='view')
 @with_widgets('auth_widget')
@@ -199,6 +209,7 @@ def edit_channel_action(context, request):
     name = context.__name__
     p_root = getUtility(IRootFactory).get_root(request.environ)
     channels = utility_finder(p_root, 'channels')
+    videos = utility_finder(p_root, 'videos')
     if not channels.is_stored(name):
         logging.info(context)
         channels[name] = Channel(name)
@@ -208,12 +219,18 @@ def edit_channel_action(context, request):
     for att in ['title', 'description']:
         setattr(context, att, form.get('channel.%s' % att))
     
+    context.pre_roll = form.get('sting.pre_roll', '')
+    context.end_roll = form.get('sting.end_roll', '')
     transaction.commit()
-    return ResponseTemplate('pages/edit_channel.html', context=context, message='Channel updated successfully')
+    sting_videos = [('', 'No Video')]
+    sting_videos.extend([(video.__name__, video.name) for video in videos.values()])
+    return ResponseTemplate('pages/edit_channel.html', context=context, sting_videos=sting_videos, message='Channel updated successfully')
 
 @bfg_view(name='add_video.html', for_=IVideoContainer, request_type=IGETRequest, permission='edit')
 def add_video_form(context, request):
-    return ResponseTemplate('pages/add_video.html', message='Please complete the form below', context=context, sting_videos=[video for video in context])
+    sting_videos = [('', 'No Video')]
+    sting_videos.extend([(video.__name__, video.name) for video in context.values()])
+    return ResponseTemplate('pages/add_video.html', message='Please complete the form below', context=context, sting_videos=sting_videos)
 
 @bfg_view(name='add_video.html', for_=IVideoContainer, request_type=IPOSTRequest, permission='edit')
 def add_video_action(context, request):
@@ -230,12 +247,14 @@ def add_video_action(context, request):
     context.add_video(name, description, tags.replace(' ','').split(','), encodes)
     import transaction
     transaction.commit()
-    return ResponseTemplate('pages/add_video.html', message='Video successfully added', context=context, sting_videos=[video for video in context])
+    sting_videos = [('', 'No Video')]
+    sting_videos.extend([(video.__name__, video.name) for video in context.values()])
+    return ResponseTemplate('pages/add_video.html', message='Video successfully added', context=context, sting_videos=sting_videos)
 
 @bfg_view(name='edit.html', for_=IVideo, request_type=IGETRequest, permission='edit')
 def edit_video_form(context, request):
     sting_videos = [('', 'No Video')]
-    sting_videos.extend([(video.__name__, video.name) for video in context.__parent__.values()])
+    sting_videos.extend([(video.__name__, video.name) for video in context.__parent__.values() if video.__name__ != context.__name__])
     return ResponseTemplate('pages/edit_video.html', message='Please complete the form below', context=context, sting_videos=sting_videos)
 
 @bfg_view(name='edit.html', for_=IVideo, request_type=IPOSTRequest, permission='edit')
@@ -245,7 +264,7 @@ def edit_video_action(context, request):
     description = form.get('video.description')
     tags = form.get('video.tags')
     sting_videos = [('', 'No Video')]
-    sting_videos.extend([(video.__name__, video.name) for video in context.__parent__.values()])
+    sting_videos.extend([(video.__name__, video.name) for video in context.__parent__.values() if video.__name__ != context.__name__])
     if not (name and description and tags):
         return ResponseTemplate('pages/edit_video.html', message='Missing fields', context=context, sting_videos=sting_videos)
     context.name = name

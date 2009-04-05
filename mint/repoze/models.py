@@ -274,7 +274,7 @@ class Video(BaseContainer):
     pre_roll = u''
     end_roll = u''
     
-    def __init__(self, uid, name, description, tags, encodes={}, static_dir='var/videos/'):
+    def __init__(self, uid, name, description, tags=[], encodes={}, static_dir='var/videos/'):
         """ Receives encodes in the form:
                 encodes = {
                     'mp4': <FileStream>,
@@ -306,7 +306,13 @@ class Video(BaseContainer):
     
     def get_path_to_encode(self, encode='mp4'):
         ##TODO: dynamic url to static
-        return u'http://localhost:6543/videos/%s/%s.%s' % (self.__name__, self.__name__, encode)
+        base_url = CONFIG['base_url']
+        video_url = CONFIG['video_url']
+        base = base_url + video_url
+        if base.endswith('/'):
+            base = base[:-1]
+        name = self.__name__
+        return u'%(base)s/%(name)s/%(name)s.%(encode)s' % locals()
     
     def get_playlist(self, pre=[], post=[]):
         """ Returns a list of videos to play including pre/end rolls
@@ -417,7 +423,7 @@ class VideoContainer(BaseContainer):
         return [video for video in videos.values() if IVideo.providedBy(video)]
     
     def get_playlist(self, pre=[], post=[]):
-        playlist = [self.__name__]
+        playlist = self.get_listings()
         if self.pre_roll:
             if CONFIG.get('add_parent_stings') == 'after':
                 pre = [self.pre_roll] + pre
@@ -464,7 +470,7 @@ class Channel(Persistent):
         return u'<Channel object>'
     
     def get_playlist(self, pre=[], post=[]):
-        playlist = [self.__name__]
+        playlist = [video for video in self.get_listings()]
         if self.pre_roll:
             if CONFIG.get('add_parent_stings') == 'after':
                 pre = [self.pre_roll] + pre

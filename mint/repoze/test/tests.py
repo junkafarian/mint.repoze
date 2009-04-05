@@ -367,13 +367,11 @@ def test_edit_video():
         u'edit video url should be available'
     )
     form = res.form
-    print form['sting.pre_roll'].options
     #if 'Intro' in form['sting.pre_roll'].options:
     form.select('sting.pre_roll', 'intro')
-        #form['sting.pre_roll'].value = 'Intro'
+    #form['sting.pre_roll'].value = 'Intro'
     
     res = form.submit()
-    print form['sting.pre_roll'].value
     assert_true(
         'intro' == form['sting.pre_roll'].value,
         u'Intro should be set as the pre-roll'

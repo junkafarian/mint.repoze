@@ -6,6 +6,7 @@
   <form action="" method="post" enctype="multipart/form-data">
     <div><label for="channel.title">Title</label><input name="channel.title" type="text" value="{{ context.title }}" /></div>
     <div><label for="channel.description">Description</label><textarea name="channel.description">{{ context.description }}</textarea></div>
+    {% include 'widgets/sting_form.html' %}
     <input type="submit" />
   </form>
 {% endblock %}
