@@ -140,9 +140,7 @@ def video(context, request):
 @bfg_view(for_=IChannel, permission='view')
 @with_widgets('auth_widget')
 def channel(context, request):
-    #p_root = getUtility(IRootFactory).get_root(request.environ)
-    #videos = utility_finder(p_root, 'videos')
-    videos = [render_view(video,request,'video_listing_widget') for video in context.get_listings()]#videos)]
+    videos = [render_view(video,request,'video_listing_widget') for video in context.get_listings()]
     title = context.title or context.__name__.title()
     return ResponseTemplate('pages/channel.html', context=context, videos=videos, title=title)
 
@@ -189,10 +187,11 @@ def view_users(context,request):
 
 @bfg_view(name='edit.html', for_=IChannel, request_type=IGETRequest, permission='edit')
 def edit_channel_form(context, request):
-    #p_root = getUtility(IRootFactory).get_root(request.environ)
-    #videos = utility_finder(p_root, 'videos')
-    #videos = [render_view(video,request,'video_listing_widget') for video in context.get_listings(videos)]
-    return ResponseTemplate('pages/edit_channel.html', context=context, message='please update the information in the form below')
+    p_root = getUtility(IRootFactory).get_root(request.environ)
+    videos = utility_finder(p_root, 'videos')
+    sting_videos = [('', 'No Video')]
+    sting_videos.extend([(video.__name__, video.name) for video in videos.values()])
+    return ResponseTemplate('pages/edit_channel.html', context=context, sting_videos=sting_videos, message='please update the information in the form below')
 
 @bfg_view(name='edit.html', for_=IChannel, request_type=IPOSTRequest, permission='edit')
 def edit_channel_action(context, request):
