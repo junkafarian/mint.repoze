@@ -1,5 +1,5 @@
 <configure xmlns="http://namespaces.repoze.org/bfg">
-
+  
   <!-- this must be included for the view declarations to work -->
   <include package="repoze.bfg.includes" />
   
@@ -7,20 +7,8 @@
     provides="repoze.bfg.interfaces.INotFoundAppFactory"
     component="mint.repoze.run.not_found"
   />
-
-  <utility
-    provides="repoze.bfg.interfaces.ISecurityPolicy"
-    factory="repoze.bfg.security.RepozeWhoIdentityACLSecurityPolicy"
-  />
-    
+  
   <!-- to save us having to write nasty xml configuration -->
   <scan package="." />
   
-  <!--
-  <view
-     for=".models.MyModel"
-     view=".views.my_view"
-     />
-  -->
-
 </configure>

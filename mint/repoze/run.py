@@ -1,5 +1,6 @@
 from repoze.bfg.router import make_app
 from repoze.bfg.settings import get_options
+from repoze.bfg.authentication import RepozeWho1AuthenticationPolicy
 #from repoze.zodbconn.finder import PersistentApplicationFinder
 from zope.component import getUtility, getGlobalSiteManager
 
@@ -73,7 +74,7 @@ class MintApp:
     
     @property
     def app(self):
-        app = make_app(self.get_root, mint.repoze, options=self.options)
+        app = make_app(self.get_root, mint.repoze, authentication_policy=RepozeWho1AuthenticationPolicy(), options=self.options)
         app = auth_middleware(app, self.options['zodb_base'])
         self.app = app
         return self.app
