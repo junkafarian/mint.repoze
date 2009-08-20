@@ -324,17 +324,3 @@ def edit_adspace_action(context,request):
     return ResponseTemplate('pages/edit_adspace.html', context=context, message='The banner was successfully updated')
     
 
-## /static/ 
-
-@bfg_view(name='static', for_=Root)
-def static_view(context, request):
-    from mint.repoze.urldispatch import static
-    return static('mint/repoze/static')(context, request)
-
-## /videos/
-
-@bfg_view(name='encodes', for_=Root)
-def encodes_view(context, request):
-    from mint.repoze.urldispatch import static
-    return static('var/videos')(context, request)
-
