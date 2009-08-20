@@ -117,3 +117,16 @@ class not_found(object):
         return res(environ, start_response)
     
 
+def not_found(context, request):
+    environ = request.environ
+    root = environ['webob.adhoc_attrs']['root']
+    path = environ['PATH_INFO'].lstrip('/').split('/')
+    res = HTTPNotFound()
+    if len(path) == 1:
+        path = path[0]
+        # we should have a look to see if we want to forward to a resource
+        for util in utility_finder.utilities():
+            utility = utility_finder(root, util).keys()
+            if path in utility:
+                res = HTTPMovedPermanently(location = '/%s/%s' % (util, path))
+    return res

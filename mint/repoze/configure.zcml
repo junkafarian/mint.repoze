@@ -3,12 +3,19 @@
   <!-- this must be included for the view declarations to work -->
   <include package="repoze.bfg.includes" />
   
-  <utility 
-    provides="repoze.bfg.interfaces.INotFoundAppFactory"
-    component="mint.repoze.run.not_found"
-  />
+  <notfound view="mint.repoze.run.not_found" />
+  
+  <aclauthorizationpolicy/>
+  <repozewho1authenticationpolicy />
+  
+  
   
   <!-- to save us having to write nasty xml configuration -->
   <scan package="." />
+  <view
+    for=".root.Root"
+    view=".views.static_view"
+    name="static"
+  />
   
 </configure>
