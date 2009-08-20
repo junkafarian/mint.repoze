@@ -197,8 +197,7 @@ def view_users(context,request):
 
 @bfg_view(name='edit.html', for_=IChannel, request_type=IGETRequest, permission='edit')
 def edit_channel_form(context, request):
-    p_root = getUtility(IRootFactory).get_root(request.environ)
-    videos = utility_finder(p_root, 'videos')
+    videos = utility_finder(context, 'videos')
     sting_videos = [('', 'No Video')]
     sting_videos.extend([(video.__name__, video.name) for video in videos.values()])
     return ResponseTemplate('pages/edit_channel.html', context=context, sting_videos=sting_videos, message='please update the information in the form below')
@@ -207,9 +206,8 @@ def edit_channel_form(context, request):
 def edit_channel_action(context, request):
     form = request.POST
     name = context.__name__
-    p_root = getUtility(IRootFactory).get_root(request.environ)
-    channels = utility_finder(p_root, 'channels')
-    videos = utility_finder(p_root, 'videos')
+    channels = utility_finder(context, 'channels')
+    videos = utility_finder(context, 'videos')
     if not channels.is_stored(name):
         logging.info(context)
         channels[name] = Channel(name)
