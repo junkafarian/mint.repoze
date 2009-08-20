@@ -6,7 +6,6 @@ from zope.component import getUtility, getGlobalSiteManager
 
 import mint.repoze
 from mint.repoze.auth import middleware as auth_middleware
-from mint.repoze.urldispatch import RoutesMapper
 from mint.repoze.interfaces import IVideoContainer
 from mint.repoze.models import Video
 
@@ -64,9 +63,9 @@ class MintApp:
         from mint.repoze.root import ZODBInit
         init = ZODBInit(zodb_base)
         get_root = PersistentApplicationFinder(zodb_uri, init)
-        root = RoutesMapper(get_root)
-        root = self.connect_routes(root)
-        return root
+#         root = RoutesMapper(get_root)
+#         root = self.connect_routes(root)
+        return get_root
     
     def connect_routes(self, root):
         # root.connect('/contact.html', controller='contact.html')
@@ -74,7 +73,8 @@ class MintApp:
     
     @property
     def app(self):
-        app = make_app(self.get_root, mint.repoze, authentication_policy=RepozeWho1AuthenticationPolicy(), options=self.options)
+#         app = make_app(self.get_root, mint.repoze, authentication_policy=RepozeWho1AuthenticationPolicy(), options=self.options)
+        app = make_app(self.get_root, mint.repoze, options=self.options)
         app = auth_middleware(app, self.options['zodb_base'])
         self.app = app
         return self.app
