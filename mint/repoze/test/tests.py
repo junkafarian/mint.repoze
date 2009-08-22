@@ -124,16 +124,15 @@ def test_intro_video_page():
     res = res.click('feature')
     test_channel_page(res, u'feature')
 
-# hmm?
-# def test_flibble_page_returns_404():
-#     """`/flibble` isn't a page"""
-#     assert_raises(
-#         AppError,
-#         app.get,
-#         '/videos/flibble'
-#     )
-#     print u'who the hell called their video `flibble`'
-# 
+def test_flibble_page_returns_404():
+    """`/flibble` isn't a page"""
+    assert_raises(
+        AppError,
+        app.get,
+        '/videos/flibble'
+    )
+    print u'who the hell called their video `flibble`'
+
 def test_intro_video(res=None):
     """`/videos/intro` video exists and has tags"""
     if not res:
