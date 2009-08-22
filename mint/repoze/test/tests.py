@@ -1,5 +1,6 @@
 from nose.tools import assert_true, assert_false, assert_equals, assert_raises, with_setup
 from webtest import TestApp, AppError
+from repoze.bfg import testing
 from mint.repoze.test.data import users
 
 from os.path import abspath, dirname, join
@@ -261,8 +262,26 @@ def test_reachable_static_encodes():
     )
 
 def test_widgets():
-    #from views import with_widgets, test_widget
-    pass
+    from mint.repoze.views import ResponseTemplate, with_widgets, test_widget
+    
+    testing.registerView('test_widget', view=test_widget)
+    
+    @with_widgets('test_widget')
+    def test_widget_view(context, request):
+        return ResponseTemplate('test/blank.html', context=context, request=request)
+    
+    context = testing.DummyModel()
+    request = testing.DummyRequest()
+    res = test_widget_view(context, request)
+    assert_true(
+        'test_widget' in res.widgets.keys(),
+        u'test widget should have been rendered'
+    )
+    print res.widgets['test_widget']
+    assert_true(
+        res.widgets['test_widget'] == 'heres some test widget text',
+        u'test widget should have been rendered'
+    )
 
 def test_user_exists(user=users[u'admin']):
     res = app.get('/users/%s/profile.html' % user['id'])
