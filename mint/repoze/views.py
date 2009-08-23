@@ -11,6 +11,7 @@ from mint.repoze.root import Root, utility_finder
 from mint.repoze.models import Video, Channel
 from mint.repoze.interfaces import IVideo, IVideoContainer, IChannel, IChannelContainer, IUserContainer, IUser, IAdSpaceContainer, IAdSpace, IAdvert, ISyndication
 
+log = logging.getLogger('mint.views')
 
 ## Utils
 
@@ -51,7 +52,10 @@ def with_widgets(*widgets):
     def decorate(func):
         def wrapper(*args, **kwargs):
             response = func(*args, **kwargs)
-            response.add_widgets(args[0],args[1],*widgets)
+            if hasattr(response, 'add_widgets'):
+                response.add_widgets(args[0],args[1],*widgets)
+            else:
+                log.warning('View function must return a ResponseTemplate object to support widgets')
             return response
         return wrapper
     return decorate
@@ -68,10 +72,6 @@ def logout(context, request):
     return HTTPUnauthorized(headers=[('Location', request.application_url)])
 
 ## Widgets
-
-@bfg_view(name='test_widget')
-def test_widget(context, request):
-    return Response('heres some test widget text')
 
 @bfg_view(name='auth_widget')
 def auth_widget(context, request):

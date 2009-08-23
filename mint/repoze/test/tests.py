@@ -1,5 +1,6 @@
 from nose.tools import assert_true, assert_false, assert_equals, assert_raises, with_setup
 from webtest import TestApp, AppError
+from webob import Response
 from repoze.bfg import testing
 from mint.repoze.test.data import users
 
@@ -262,7 +263,10 @@ def test_reachable_static_encodes():
     )
 
 def test_widgets():
-    from mint.repoze.views import ResponseTemplate, with_widgets, test_widget
+    from mint.repoze.views import ResponseTemplate, with_widgets
+    
+    def test_widget(context, request):
+        return Response('heres some test widget text')
     
     testing.registerView('test_widget', view=test_widget)
     
@@ -280,6 +284,32 @@ def test_widgets():
     print res.widgets['test_widget']
     assert_true(
         res.widgets['test_widget'] == 'heres some test widget text',
+        u'test widget should have been rendered'
+    )
+
+def test_widgets_with_context():
+    from mint.repoze.views import ResponseTemplate, with_widgets
+    
+    def test_widget(context, request):
+        return Response('heres some test widget text called: ' + context.title)
+    
+    testing.registerView('test_widget', view=test_widget)
+    
+    @with_widgets('test_widget')
+    def test_widget_view(context, request):
+        return ResponseTemplate('test/blank.html', context=context, request=request)
+    
+    context = testing.DummyModel()
+    context.title = 'Test Title'
+    request = testing.DummyRequest()
+    res = test_widget_view(context, request)
+    assert_true(
+        'test_widget' in res.widgets.keys(),
+        u'test widget should have been rendered'
+    )
+    print res.widgets['test_widget']
+    assert_true(
+        context.title in res.widgets['test_widget'],
         u'test widget should have been rendered'
     )
 
