@@ -5,3 +5,4 @@ mint.repoze.egg-info/*
 log/*
 bin/*
 var/*
+docs/_build/*
