@@ -30,6 +30,7 @@ The following documentation covers the development of:
 .. toctree::
    :maxdepth: 2
    
+   development/install
    development/static
    development/templates
    development/views
