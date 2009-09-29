@@ -4,8 +4,39 @@ Installation
 Local
 -----
 
-You can begin developing on a local instance by installing with the following 
-instructions:
+This application is built on top of repoze.bfg. If you experience problems installing this package, 
+refer to the installation instructions in the `repoze.bfg docs <http://docs.repoze.org/bfg/>`_
+
+Download the codebase from the github repository using::
+
+    git clone git://github.com/junkafarian/mint.repoze.git mint.repoze
+
+When these are installed you should be able to install the rest of the dependencies as usual 
+by installing the code as a development package using setuptools::
+
+    $ cd /path/to/project
+    $ python setup.py develop
+
+**n.b. It is advisable to run the above command in a dedicated** `virtual environment <http://pypi.python.org/pypi/virtualenv>`_
+
+You will also need to create a ZEO instance for the project by running::
+
+    $ mkzeoinst .
+    $ ./bin/zeoctl start
+
+*(The plan is to provide a buildout script in future)*
+
+Then test the application to make sure it works::
+
+    $ nosetests
+    OR
+    $ python setup.py test
+
+then serve the application with::
+
+    $ paster serve etc/develop.ini
+
+enjoy!
 
 Remote
 ------
