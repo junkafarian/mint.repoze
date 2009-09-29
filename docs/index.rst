@@ -10,7 +10,7 @@ Mint is a web application for running video based web services.
 The project is the foundation for the new `green.tv <http://www.green.tv>`_
 
 Administration
-===========
+==============
 
 The following documentation covers administrating the site:
 
