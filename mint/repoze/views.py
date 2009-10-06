@@ -2,7 +2,8 @@ from webob import Response
 from webob.exc import HTTPNotFound, HTTPMovedPermanently, HTTPFound as redirect, HTTPUnauthorized
 from jinja2 import Environment, PackageLoader
 from repoze.bfg.view import bfg_view, render_view
-from repoze.bfg.interfaces import IGETRequest, IPOSTRequest, IRequest, IRootFactory
+from repoze.bfg.interfaces import IRequest, IRootFactory
+#from repoze.bfg.interfaces import IGETRequest, IPOSTRequest
 from zope.component import getUtility, getGlobalSiteManager
 import transaction
 import logging
@@ -111,12 +112,12 @@ def index(context, request):
 def index_page(context, request):
     return ResponseTemplate('pages/index.html', context=context, request=request)
 
-@bfg_view(name='set_default_video.html', for_=Root, request_type=IGETRequest, permission='edit')
+@bfg_view(name='set_default_video.html', for_=Root, request_type='GET', permission='edit')
 def set_default_video_form(context, request):
     videos = utility_finder(context, 'videos')
     return ResponseTemplate('pages/set_default_video.html', context=context, message='Please select the video you would like to play on the home page', videos=videos.values())
 
-@bfg_view(name='set_default_video.html', for_=Root, request_type=IPOSTRequest, permission='edit')
+@bfg_view(name='set_default_video.html', for_=Root, request_type='POST', permission='edit')
 def set_default_video_action(context, request):
     form = request.POST
     video = form.get('video.name')
@@ -167,11 +168,11 @@ def rss_feed(context, request):
 
 ## Admin Views
 
-@bfg_view(name='register.html', for_=IUserContainer, request_type=IGETRequest)
+@bfg_view(name='register.html', for_=IUserContainer, request_type='GET')
 def register_form(context,request):
     return ResponseTemplate('pages/user/register.html', context=context, message=u'Please fill out the details below')
 
-@bfg_view(name='register.html', for_=IUserContainer, request_type=IPOSTRequest)
+@bfg_view(name='register.html', for_=IUserContainer, request_type='POST')
 def register_action(context,request):
     message = u''
     form = request.POST
@@ -195,14 +196,14 @@ def view_users(context,request):
 # def edit_user_profile(context, request):
 #     return ResponseTemplate('pages/user/edit_profile.html')
 
-@bfg_view(name='edit.html', for_=IChannel, request_type=IGETRequest, permission='edit')
+@bfg_view(name='edit.html', for_=IChannel, request_type='GET', permission='edit')
 def edit_channel_form(context, request):
     videos = utility_finder(context, 'videos')
     sting_videos = [('', 'No Video')]
     sting_videos.extend([(video.__name__, video.name) for video in videos.values()])
     return ResponseTemplate('pages/edit_channel.html', context=context, sting_videos=sting_videos, message='please update the information in the form below')
 
-@bfg_view(name='edit.html', for_=IChannel, request_type=IPOSTRequest, permission='edit')
+@bfg_view(name='edit.html', for_=IChannel, request_type='POST', permission='edit')
 def edit_channel_action(context, request):
     form = request.POST
     name = context.__name__
@@ -224,13 +225,13 @@ def edit_channel_action(context, request):
     sting_videos.extend([(video.__name__, video.name) for video in videos.values()])
     return ResponseTemplate('pages/edit_channel.html', context=context, sting_videos=sting_videos, message='Channel updated successfully')
 
-@bfg_view(name='add_video.html', for_=IVideoContainer, request_type=IGETRequest, permission='edit')
+@bfg_view(name='add_video.html', for_=IVideoContainer, request_type='GET', permission='edit')
 def add_video_form(context, request):
     sting_videos = [('', 'No Video')]
     sting_videos.extend([(video.__name__, video.name) for video in context.values()])
     return ResponseTemplate('pages/add_video.html', message='Please complete the form below', context=context, sting_videos=sting_videos)
 
-@bfg_view(name='add_video.html', for_=IVideoContainer, request_type=IPOSTRequest, permission='edit')
+@bfg_view(name='add_video.html', for_=IVideoContainer, request_type='POST', permission='edit')
 def add_video_action(context, request):
     form = request.POST
     name = form.get('video.name')
@@ -249,13 +250,13 @@ def add_video_action(context, request):
     sting_videos.extend([(video.__name__, video.name) for video in context.values()])
     return ResponseTemplate('pages/add_video.html', message='Video successfully added', context=context, sting_videos=sting_videos)
 
-@bfg_view(name='edit.html', for_=IVideo, request_type=IGETRequest, permission='edit')
+@bfg_view(name='edit.html', for_=IVideo, request_type='GET', permission='edit')
 def edit_video_form(context, request):
     sting_videos = [('', 'No Video')]
     sting_videos.extend([(video.__name__, video.name) for video in context.__parent__.values() if video.__name__ != context.__name__])
     return ResponseTemplate('pages/edit_video.html', message='Please complete the form below', context=context, sting_videos=sting_videos)
 
-@bfg_view(name='edit.html', for_=IVideo, request_type=IPOSTRequest, permission='edit')
+@bfg_view(name='edit.html', for_=IVideo, request_type='POST', permission='edit')
 def edit_video_action(context, request):
     form = request.POST
     name = form.get('video.name')
@@ -273,11 +274,11 @@ def edit_video_action(context, request):
     transaction.commit()
     return ResponseTemplate('pages/edit_video.html', message='Video successfully updated', context=context, sting_videos=sting_videos)
 
-@bfg_view(name='add.html', request_type=IGETRequest, for_=IAdSpaceContainer)
+@bfg_view(name='add.html', request_type='GET', for_=IAdSpaceContainer)
 def add_adspace_form(context, request):
     return ResponseTemplate('pages/add_adspace.html', message='Add Banner')
 
-@bfg_view(name='add.html', request_type=IPOSTRequest, for_=IAdSpaceContainer)
+@bfg_view(name='add.html', request_type='POST', for_=IAdSpaceContainer)
 def add_adspace_action(context, request):
     form = request.POST
     fields = ['title', 'width', 'height']
@@ -301,11 +302,11 @@ def add_adspace_action(context, request):
 def edit_adspaces(context, request):
     return ResponseTemplate('pages/edit_adspaces.html', context=context)
 
-@bfg_view(name='edit.html', for_=IAdSpace, request_type=IGETRequest, permission='edit')
+@bfg_view(name='edit.html', for_=IAdSpace, request_type='GET', permission='edit')
 def edit_adspace_form(context,request):
     return ResponseTemplate('pages/edit_adspace.html', context=context)
 
-@bfg_view(name='edit.html', for_=IAdSpace, request_type=IPOSTRequest, permission='edit')
+@bfg_view(name='edit.html', for_=IAdSpace, request_type='POST', permission='edit')
 def edit_adspace_action(context,request):
     form = request.POST
     title = form.get('banner.title')
