@@ -5,7 +5,7 @@
   
   <notfound view="mint.repoze.run.not_found" />
   
-  <aclauthorizationpolicy/>
+  <aclauthorizationpolicy />
   <repozewho1authenticationpolicy />
   
   
