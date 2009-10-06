@@ -1,5 +1,5 @@
 from webob import Response
-from webob.exc import HTTPNotFound, HTTPMovedPermanently, HTTPUnauthorized
+from webob.exc import HTTPNotFound, HTTPMovedPermanently, HTTPFound as redirect, HTTPUnauthorized
 from jinja2 import Environment, PackageLoader
 from repoze.bfg.view import bfg_view, render_view
 from repoze.bfg.interfaces import IGETRequest, IPOSTRequest, IRequest, IRootFactory
@@ -65,7 +65,7 @@ def with_widgets(*widgets):
 
 @bfg_view(name='login.html', for_=Root, permission='authenticated')
 def login(context, request):
-    return HTTPMovedPermanently(location = '/index.html')
+    return redirect(location = '/index.html')
 
 @bfg_view(name='logout.html', for_=Root, permission='view')
 def logout(context, request):
@@ -130,7 +130,7 @@ def set_default_video_action(context, request):
 
 @bfg_view(name='video_redirect')
 def video_redirect(context, request):
-    return HTTPMovedPermanently(location = '/videos/' + context.video_name)
+    return redirect(location = '/videos/' + context.video_name)
 
 @bfg_view(for_=IVideo, permission='view')
 @with_widgets('auth_widget', 'tags_widget')
